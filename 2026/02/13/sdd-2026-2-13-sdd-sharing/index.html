@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>《Spec-Driven Development 原理与实战》 | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="背景 软件开发的本质，是将开发人员的思想，转换为机器中可执行的代码。准确和高效，是软件开发过程中永恒的目标。 在软件工程发展的历史长河中，效率提升始终是一条主线。从文本编辑器到各类强大的IDE，从单体系统到微服务架构，从瀑布式开发到敏捷研发，一代代工程师为了更快地实现软件价值而前赴后继，这才有了我们现在这个星河璀璨的智能互联世界。 近几年来，随着AI在软件开发场景被广泛运用，软件研发的效率提升，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《Spec-Driven Development 原理与实战》">
+<meta property="og:url" content="http://demonyangyue.github.io/2026/02/13/sdd-2026-2-13-sdd-sharing/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="背景 软件开发的本质，是将开发人员的思想，转换为机器中可执行的代码。准确和高效，是软件开发过程中永恒的目标。 在软件工程发展的历史长河中，效率提升始终是一条主线。从文本编辑器到各类强大的IDE，从单体系统到微服务架构，从瀑布式开发到敏捷研发，一代代工程师为了更快地实现软件价值而前赴后继，这才有了我们现在这个星河璀璨的智能互联世界。 近几年来，随着AI在软件开发场景被广泛运用，软件研发的效率提升，">
+<meta property="og:locale">
+<meta property="og:image" content="http://demonyangyue.github.io/images/sdd/1.png">
+<meta property="og:image" content="http://demonyangyue.github.io/images/sdd/2.png">
+<meta property="og:image" content="http://demonyangyue.github.io/images/sdd/3.png">
+<meta property="og:image" content="http://demonyangyue.github.io/images/sdd/8.png">
+<meta property="og:image" content="http://demonyangyue.github.io/images/sdd/4.png">
+<meta property="og:image" content="http://demonyangyue.github.io/images/sdd/5.png">
+<meta property="og:image" content="http://demonyangyue.github.io/images/sdd/6.png">
+<meta property="article:published_time" content="2026-02-12T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-02-13T12:33:51.404Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="SDD">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://demonyangyue.github.io/images/sdd/1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-sdd-2026-2-13-sdd-sharing" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2026/02/13/sdd-2026-2-13-sdd-sharing/" class="article-date">
+  <time class="dt-published" datetime="2026-02-12T16:00:00.000Z" itemprop="datePublished">2026-02-13</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Engineering/">Engineering</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      《Spec-Driven Development 原理与实战》
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="背景"><a class="markdownIt-Anchor" href="#背景"></a> 背景</h2>
+<p>软件开发的本质，是将开发人员的思想，转换为机器中可执行的代码。准确和高效，是软件开发过程中永恒的目标。</p>
+<p>在软件工程发展的历史长河中，效率提升始终是一条主线。从文本编辑器到各类强大的IDE，从单体系统到微服务架构，从瀑布式开发到敏捷研发，一代代工程师为了更快地实现软件价值而前赴后继，这才有了我们现在这个星河璀璨的智能互联世界。</p>
+<p>近几年来，随着AI在软件开发场景被广泛运用，软件研发的效率提升，被按下了加速键。</p>
+<p>最早出现的是AI代码补全工具，将深度学习应用于代码补全，提供单词或单行级别的补全建议。后来以GitHub Copilot的出现为标志，AI编程助手可以根据注释生成整个函数，结合上下文推断开发者意图。这两年随着Vibe Coding的出现，开发者通过自然语言描述软件意图，由AI去完成具体实现，在一轮轮迭代对话中完成开发目标。</p>
+<p>Vibe coding对于个人项目或者一次性项目，是非常合适的提效方式，但是对于企业级场景的代码开发，由于缺乏规范和约束，难以满足企业级代码可靠性和可维护性的要求。</p>
+<p>于是规范驱动编程(Spec-Driven Development，SDD)被提出，其核心思想在于，在领域规范的指导下，通过多轮对话迭代，生成符合企业标准的代码。不同于以代码为中心的传统开发模式，SDD把规范(Spec)作为开发过程中的核心资产。</p>
+<img src="/images/sdd/1.png" width="80%" height="80%">
+<span id="more"></span>
+<h2 id="sdd原理"><a class="markdownIt-Anchor" href="#sdd原理"></a> SDD原理</h2>
+<p>SDD定义了一个严谨的开发流程，强制要求在编码之前，明确定义系统设计意图(Spec)。通过这样的方式，LLM 的角色从“不确定的创造者”转变为“受约束的执行者”。</p>
+<p>传统的开发范式以代码为唯一事实来源(Single Source of Truth)，强调<code>可工作的软件胜于详尽的文档</code> 。在AI agent的帮助下，代码产出的成本极大降低，使得我们可以实现从传统开发范式向SDD开发范式的迁移，把Spec作为唯一事实来源。每一次变更，先修改Spec，然后AI agent基于新的Spec更新代码。编程理念从<code>talk is cheap , show me the code</code>，转变为<code>code is cheap, show me the spec</code>。</p>
+<img src="/images/sdd/2.png" width="80%" height="80%">
+<p>SDD能够在企业级代码开发中取得成功，有以下几个原因：</p>
+<ul>
+<li>在设计之初，强制将模糊的需求拆解成具体的功能点，进一步定位为具体的实现任务，通过限制每个任务的范围，使得AI agent在实现代码时，可以聚焦在较小的上下文窗口，确保AI可以高概率输出高质量代码。</li>
+<li>开发者角色发生了深刻演变，不再是单纯的代码编写者，而是系统架构的设计者和系统功能的验证者，这种左移策略，可以让开发者在实现功能实现之初，就点关键架构设计点和功能验证点，进行深度透彻地思考。</li>
+<li>将功能规范(Spec)和技术实现解耦，通过Spec描述系统的本质复杂性，而不必陷入具体的技术实现细节。这种解耦允许工程师实现功能的快速迭代，甚至是底层技术栈迁移之类的大规模重构。</li>
+</ul>
+<h2 id="sdd实现"><a class="markdownIt-Anchor" href="#sdd实现"></a> SDD实现</h2>
+<p>本文以<a href="https://github.com/github/spec-kit">Github Spec Kit</a>(Speckit)为例，介绍SDD理念工程化落地实现。</p>
+<h3 id="整体架构"><a class="markdownIt-Anchor" href="#整体架构"></a> 整体架构</h3>
+<p>Spekit 的物理架构由两部分组成：一个轻量级的命令行界面（Specify CLI）和一套跨代理兼容的模板库。</p>
+<table>
+<thead>
+<tr>
+<th>目录结构</th>
+<th>角色</th>
+<th>包含内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.specify/templates/</code></td>
+<td>蓝图层</td>
+<td>规范模板、技术计划模板、任务分解模板</td>
+</tr>
+<tr>
+<td><code>.specify/memory/</code></td>
+<td>知识层</td>
+<td><code>constitution.md</code> 项目宪法，记录长期治理准则</td>
+</tr>
+<tr>
+<td><code>.specify/scripts/</code></td>
+<td>自动化层</td>
+<td>跨平台的初始化脚本（Bash/PowerShell）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="七阶段工作流"><a class="markdownIt-Anchor" href="#七阶段工作流"></a> 七阶段工作流</h3>
+<p>Speckit通过七个关键命令，引导开发者完成意图到实现的闭环：</p>
+<img src="/images/sdd/3.png" width="80%" height="80%">
+<ul>
+<li>
+<p>/constitution : 该命令在Speckit启动之初运行一次，用于制定本项目不随功能变化而改变的基础原则。AI会引导用户完成制定项目的核心原则、技术栈、架构约束、开发流程，生成的constitution.md会作为后续所有命令的上下文。</p>
+</li>
+<li>
+<p>/specify 与 /clarify: /specify 负责生成功能规范<code>spec.md</code>。开发者输入初始的功能需求描述，AI负责拆解成相应的User Story 和 功能需求，后续用户通过/specify 命令，和AI一轮轮沟通具体的需求实现细节，直至双发达成一致。</p>
+</li>
+<li>
+<p>/plan:负责生成技术方案文档，制定技术实施计划。用户可以通过可AI的交互，调整方案选型和技术实现细节。</p>
+</li>
+<li>
+<p>/tasks:确定具体的开发任务列表，通过review task列表，对开发任务进行查漏补缺。后续可以执行 /analyze命令，分析项目约束是否被遵循、功能点是否都已经被覆盖。</p>
+</li>
+<li>
+<p>/implement: 根据任务清单，逐项生成代码。每完成一个任务，就勾选任务把状态设置为已完成，防止后续重复劳动。</p>
+</li>
+</ul>
+<p>Spectkit的工作流，和我们日常的需求开发流程相契合，按需求收集、PRD设计、技术方案设计、开发事项拆解&amp;排期、编码开发、测试验证的步骤执行，这也从侧面说明，传统的软件开发流程，有其内在的科学性。</p>
+<h3 id="具体实现"><a class="markdownIt-Anchor" href="#具体实现"></a> 具体实现</h3>
+<p>每个Spec命令，都以Markdown文本文件的形式，被安装到 /commands目录下面供Agent调用。</p>
+<p>以<code>speckit.specify.md</code> 文件为例，其整体流程分为以下7步：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>做什么</th>
+<th>实现要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. 生成短名</td>
+<td>从描述里提炼 2–4 个词作为 feature 短名</td>
+<td>用「动作+名词」、保留技术词（OAuth2、API 等），保证可读且唯一性友好</td>
+</tr>
+<tr>
+<td>2. 分支与目录</td>
+<td>决定新 feature 的编号和分支/目录</td>
+<td>git fetch → 在 远程分支、本地分支、specs/ 目录 里找同短名下的最大编号 N → 用 N+1；然后只执行一次 <code>create-new-feature.sh</code>，传入 --number、–short-name 和描述，拿到脚本输出的 JSON（含 BRANCH_NAME、SPEC_FILE 等）</td>
+</tr>
+<tr>
+<td>3. 加载模板</td>
+<td>读 .specify/templates/spec-template.md</td>
+<td>确定 spec 必须包含的章节和占位符，保证输出结构一致</td>
+</tr>
+<tr>
+<td>4. 执行规格生成逻辑</td>
+<td>解析描述 → 提取概念 → 填 spec 内容</td>
+<td>顺序：解析输入 → 提取 actors/actions/data/约束 → 对不明确处做合理默认或打 [NEEDS CLARIFICATION: …]（最多 3 处）→ 填用户场景与测试 → 功能需求（可测试）→ 成功标准（可度量、技术无关）→ 关键实体 → 输出「SUCCESS」</td>
+</tr>
+<tr>
+<td>5. 写 spec</td>
+<td>把生成内容写入 SPEC_FILE</td>
+<td>按模板结构写，保留章节顺序和标题，占位符换成从「用户描述」推导出的具体内容</td>
+</tr>
+<tr>
+<td>6. 质量校验</td>
+<td>用 checklist 检查 spec 质量</td>
+<td>在 FEATURE_DIR/checklists/requirements.md 建检查清单；逐条对照检查；不通过则改 spec 并重验（最多 3 轮）；若有 [NEEDS CLARIFICATION]，则以固定格式向用户提问（含选项表），根据用户选择更新 spec 后再校验</td>
+</tr>
+<tr>
+<td>7. 收尾报告</td>
+<td>汇报完成情况</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p><code>specify</code> 命令的实现中，会专注于描述用户诉求和为什么需要这样设计，不会设计具体的技术栈、API和代码结构。</p>
+<h2 id="sdd实战"><a class="markdownIt-Anchor" href="#sdd实战"></a> SDD实战</h2>
+<p>以一次日常需求 <strong>HTTP接口签名服务</strong> 开发为例，介绍一下SDD的具体实践。整体实践流程如下图所示：</p>
+<p><img src="/images/sdd/8.png" alt="" /></p>
+<ul>
+<li>需求澄清阶段：</li>
+</ul>
+<p>经过10轮的需求澄清，逐步细化需求，明确了需求的具体细节，产出了AI可处理的prd <code>spec.md</code>。每次澄清都有明确的记录，将需求变动同步更新到文档中，避免了传统开发模式中，需求变更难以追溯，以及需求和实现不匹配的问题。</p>
+<p>最终产出的需求文档结构：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">spec.md (需求规格)</span><br><span class="line">├── Clarifications (需求澄清记录)</span><br><span class="line">├── User Scenarios (用户场景)</span><br><span class="line">│   ├── User Story 1: 生成签名 (P1)</span><br><span class="line">│   ├── User Story 2: 验证签名 (P1)</span><br><span class="line">│   └── User Story 3: 读取配置 (P2)</span><br><span class="line">├── Requirements (功能需求)</span><br><span class="line">│   ├── FR-001 ~ FR-013 (13个功能需求)</span><br><span class="line">│   └── 每个需求都有明确的MUST/SHOULD描述</span><br><span class="line">├── Success Criteria (成功标准)</span><br><span class="line">│   └── SC-001 ~ SC-010 (10个可衡量指标)</span><br><span class="line">├── Assumptions (假设)</span><br><span class="line">└── Out of Scope (范围外)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li>方案计划阶段</li>
+</ul>
+<p>该阶段产出了具体的技术方案文档<code>plan.md</code>，文档中进行了清晰的模块<br />
+划分，遵循了各个层级之间的依赖关系，避免了传统流程中可能存在的技术方案细节确实、依赖关系混乱等问题。</p>
+<p>技术方案后续被拆分成了72个具体的开发任务，记录在<code>task.md</code>中。明确记录了任务之间依赖关系、任务的归属User Story 信息，并持续追踪任务的完成状态。避免了流程中，任务管理可能存在的不够细致、依赖关系不清晰等问题。</p>
+<p>最终产出的任务格式：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">- [x] T014 [US1] Create RequestSignature domain model</span><br><span class="line">- [x] T015 [US1] Create SignatureGenerator domain service</span><br><span class="line">- [ ] T052 [P] Add JavaDoc comments to all public methods</span><br></pre></td></tr></table></figure>
+<ul>
+<li>具体实现阶段</li>
+</ul>
+<p>AI agent在本阶段高效完成各个任务的开发编码工作，同时通过执行完备的单元测试，保障代码质量，生成了规范的接口使用文档，和完整的使用指南，方便前端开发对接。</p>
+<p>最终生成代码的统计数据：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">总代码行数: 2039行</span><br><span class="line">文档行数: 1846行</span><br><span class="line">文档/代码比: 0.9:1</span><br><span class="line">单元测试:</span><br><span class="line">- SignatureGeneratorTest: 12个测试用例</span><br><span class="line">- SignatureVerifierTest: 15个测试用例</span><br><span class="line"></span><br><span class="line">测试覆盖场景:</span><br><span class="line">- 正常流程</span><br><span class="line">- 边界条件</span><br><span class="line">- 异常处理</span><br><span class="line">- 时间戳归一化</span><br><span class="line">- 常量时间比较</span><br></pre></td></tr></table></figure>
+<h2 id="如何用好sdd"><a class="markdownIt-Anchor" href="#如何用好sdd"></a> 如何用好SDD</h2>
+<h3 id="生产级准确性"><a class="markdownIt-Anchor" href="#生产级准确性"></a> 生产级准确性</h3>
+<p>Vibe coding的核心痛点在于：</p>
+<ul>
+<li>上下文的缺失。AI能看到的，只是当前应用中有限的内容，并不清楚团队的编码规范、历史需求的设计决策依据。</li>
+<li>知识的碎片化。大量领域知识，沉淀在开发人员的脑海里，零散且难以传递给AI。</li>
+<li>长期可维护性。随着项目中AI生成的代码越来越多，工程师对代码的掌控越来越低，很容易出现代码熵值过高，无法持续演进的情况。</li>
+</ul>
+<p>在SDD实践过程中，我们需要：</p>
+<ul>
+<li>给AI提供充分和清晰的上下文内容，帮助AI生成准确的代码。</li>
+<li>把Spec作为核心资产和唯一事实源头，所有的迭代演化围绕Spec进行。</li>
+<li>通过严格的代码审核和充分的自动化测试，持续保障项目代码的高质量。</li>
+</ul>
+<h3 id="追求10x效率"><a class="markdownIt-Anchor" href="#追求10x效率"></a> 追求10x效率</h3>
+<p>SDD带来的效率提升，体现在以下几个方面：</p>
+<ul>
+<li>首先是开发效率的提升，AI工具产出代码的速度比人类工程师要快。</li>
+<li>接着是沟通成本的下降，产品经理、后端工程师、前端工程师、测试工程师，都可以围绕spec进行沟通，大家可以聚焦于问题定义，而非具体的实现代码。</li>
+<li>更重要的是能力边界的打破，团队中各个角色的成员，都可以对spec进行修改，职责边界变得模糊，能力边界得到放大。项目开发不再卡在资源排期等待，各个角色可以并行开发。</li>
+</ul>
+<img src="/images/sdd/4.png" width="80%" height="80%">
+<p>技术创新不仅改变了个体的工作方式，使得10x效率工程师成为可能，更重要的是改变了团队协作模式和能力边界，期待未来出现10x效率的工程研发团队。</p>
+<h3 id="sdd的限制"><a class="markdownIt-Anchor" href="#sdd的限制"></a> SDD的限制</h3>
+<p>SDD并不是一劳永逸的终极方案，有其固有的限制：</p>
+<ul>
+<li>规范无法描述整个系统。依然有很多的隐性上下文，无法通过规范来描述。提供了规范，也不代表AI就能完整而准确地理解，上下文的长度不代表思考的深度。</li>
+<li>规范的维护也需要成本。规范未必比代码更容易维护，依赖于体系化的架构能力，实际上对工程师的能力提出了更高的要求。如果不把规范作为唯一事实源头，那么需要同时维护规范和代码的迭代演进，反而引入了更多的gap，增加了维护的负担。</li>
+<li>审核的成本更高。除了要审核大量的AI代码，发现其中隐藏的问题之外，还需要审核规范文档，确保需求被清晰准确地定义。</li>
+</ul>
+<p>虽然SDD模糊了团队人员的能力边界，但并不意味着出现了全能开发者，现代软件工程的角色分工的价值并未发生动摇：</p>
+<ul>
+<li>产品经理用AI辅助需求文档起草，但是需要自己执行需求决策判断。</li>
+<li>架构师用AI辅助产出技术方案，但是需要自己做出核心的架构决策。</li>
+<li>开发任务通过AI加速编码，但是方案设计和代码审查依然需要人来完成。</li>
+<li>测试人员运行AI生成的测试用例，但是依然需要对整体的质量风险进行把关。</li>
+</ul>
+<img src="/images/sdd/5.png" width="80%" height="80%">
+<p>AI帮助开发者完成了机械编码工作，让开发者有更多的精力，能够更多地投入到思考和决策中去，这些事项随着AI的发展，重要性更加凸显。</p>
+<h2 id="进一步思考"><a class="markdownIt-Anchor" href="#进一步思考"></a> 进一步思考</h2>
+<h3 id="没有银弹但有铅弹"><a class="markdownIt-Anchor" href="#没有银弹但有铅弹"></a> 没有银弹，但有铅弹</h3>
+<p>在欧洲的古老传说中，银弹(silver bullet)可以用来杀死可怕的狼人，一枪毙命。</p>
+<p>在著名的《人月神话》一书中，作者布鲁克斯在《没有银弹》这一篇，论述了没有任何技术或者方法，可以使软件工程的生产力在十年内提升十倍。软件开发活动有一些本质性的问题难以解决：</p>
+<ul>
+<li>复杂性(complexity):软件要解决的问题，有其本质的内在复杂度，依赖于人为的抽象化智能活动。</li>
+<li>隐匿性(invisibility): 未完成软件是看不见的，代码实现的过程中包含着很多隐性的知识，这带来了极大的沟通成本。</li>
+<li>配合性(conformity): 大型软件系统中，各个子系统的接口必须保持协同一致，并随着时间和环境的演变持续迭代。</li>
+<li>易变性(changeability)：软件所应用的环境，会快速变化，这要求软件也需要持续演进。</li>
+</ul>
+<p>AI时代，这些本质性问题依然存在，不过随着SDD这样的新范式出现，我们开始有了新的应对方式：</p>
+<ul>
+<li>对于固有的本质复杂性，可以结合AI工具辅助分析和学习。</li>
+<li>对于隐匿性，通过围绕spec建设核心资产，使得开发过程的各个角色，基于相同的技术语言进行讨论，极大降低沟通成本。</li>
+<li>对于配合性，AI比人类更加擅长遵循协议规范。</li>
+<li>对于易变性，AI可以帮助我们更快速地对需求变化做出响应，并且把变化历史沉淀到spec中以便追踪。</li>
+</ul>
+<p>在新的SDD研发范式下，生产力能够大幅提升，纵使依然没有银弹，但至少我们可以拥有铅弹。</p>
+<img src="/images/sdd/6.png" width="80%" height="80%">
+<h3 id="人和ai的关系"><a class="markdownIt-Anchor" href="#人和ai的关系"></a> 人和AI的关系</h3>
+<p>工程师会被AI替代么？</p>
+<p>目前来看，AI很擅长解决解决中小规模的需求，能够高效产出可在生产环境运行的代码，但是至少在核心架构设计、重要技术选型、代码质量和功能验证方面，目前AI无法替代人类完成。人类能够完成的系统化深度思考，随着AI的发展显得更加重要。</p>
+<p>AI能力的快速发展，也要求个人进行迭代升级，打破旧的自我，将AI擅长的部分交给AI，最后剩下的，就是自己的核心不可替代能力。</p>
+<p>当我们在试图用<strong>替代</strong>这个词，来描述人类和AI之间的关系时，问题的定义本身就错了，工程师和AI不是非此即彼的竞争关系。也许<strong>AI能够帮助我们做什么</strong> ，才是一个正确的问题。主动拥抱AI，把AI作为朋友，才能让自己持续进步。</p>
+<p>还有一个更好的问题：<strong>我们能够帮助AI做什么</strong> ，如何才能更加深刻地理解AI的原理和工作模式，通过Context engineering、MCP tool、Skill等手段充分释放AI的能力，是这个时代每一位工程师的必修课。</p>
+<h2 id="未来展望"><a class="markdownIt-Anchor" href="#未来展望"></a> 未来展望</h2>
+<p>SDD标志着软件工程在AI时代的一次重要演进，设计意图被提取出来，沉淀为持久化、可执行的资产，为解决AI代码的熵增问题，提供了坚实的基础。</p>
+<p>展望未来，为了使AI更加高效地产出可靠的生产级代码，我们需要：</p>
+<ul>
+<li>持续投资建设高质量的知识底座，把公共规约、项目领域知识注入到AI agent的上下文。持续迭代更新这些知识资产，并记录变更。</li>
+<li>尝试不依赖人工拆解功能需求，而是让AI直接阅读PRD，生成相应的多个spec，并行开发。</li>
+<li>度量SDD的提效指标，收集相关数据和工程团队反馈，持续优化相关实践。</li>
+</ul>
+<p>SDD为AI coding的实践，指明了方向，如黑暗中的一座灯塔，引领我们驶向AGI的星辰大海。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2026/02/13/sdd-2026-2-13-sdd-sharing/" data-id="cmlkuzvkt0000utlhc78x2rs0" data-title="《Spec-Driven Development 原理与实战》" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SDD/" rel="tag">SDD</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2026/02/12/computing-2026-2-12-computing-sharing/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">《计算读书笔记》</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDD/" rel="tag">SDD</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/SDD/" style="font-size: 10px;">SDD</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/13/sdd-2026-2-13-sdd-sharing/">《Spec-Driven Development 原理与实战》</a>
+          </li>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
