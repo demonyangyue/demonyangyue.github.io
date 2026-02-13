@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Ruby元编程系列2 – 方法 | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="引言 在一次简单地方法调用背后，ruby需要做大量的工作，让我一起开启探索ruby方法内幕的旅程吧。 和其它面向对象的语言一样，ruby在调用一个方法也要经过两个步骤：  找到这个方法 —— 方法查找 执行这个方法——在当前对象(self)上调用这个方法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ruby元编程系列2 – 方法">
+<meta property="og:url" content="http://demonyangyue.github.io/2015/04/22/ruby-2015-4-22-ruby-meta-programming-2/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="引言 在一次简单地方法调用背后，ruby需要做大量的工作，让我一起开启探索ruby方法内幕的旅程吧。 和其它面向对象的语言一样，ruby在调用一个方法也要经过两个步骤：  找到这个方法 —— 方法查找 执行这个方法——在当前对象(self)上调用这个方法">
+<meta property="og:locale">
+<meta property="og:image" content="http://demonyangyue.github.io/images/ruby_method_lookup.jpg">
+<meta property="article:published_time" content="2015-04-21T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-20T06:28:07.587Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="Ruby">
+<meta property="article:tag" content="Meta Programming">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://demonyangyue.github.io/images/ruby_method_lookup.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-ruby-2015-4-22-ruby-meta-programming-2" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/04/22/ruby-2015-4-22-ruby-meta-programming-2/" class="article-date">
+  <time class="dt-published" datetime="2015-04-21T16:00:00.000Z" itemprop="datePublished">2015-04-22</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Ruby元编程系列2 – 方法
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>在一次简单地方法调用背后，ruby需要做大量的工作，让我一起开启探索ruby方法内幕的旅程吧。</p>
+<p>和其它面向对象的语言一样，ruby在调用一个方法也要经过两个步骤：</p>
+<ol>
+<li>找到这个方法 —— 方法查找</li>
+<li>执行这个方法——在当前对象(self)上调用这个方法</li>
+</ol>
+<span id="more"></span>
+<h2 id="当前对象self"><a class="markdownIt-Anchor" href="#当前对象self"></a> 当前对象——self</h2>
+<p>当前对象(self)是理解ruby方法调用的核心概念。每一次ruby方法调用都需要在某个对象上执行，这个对象被称为方法的接受者 (receiver), 也叫作当前对象(self).</p>
+<p>在任何时刻，只有一个对象能充当当前对象，但没有哪个对象能长期充当这一角色。要想成为优秀的ruby程序员，你需要知道任何时刻当前哪个对象在充当self的角色。</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/ruby</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Nerd</span></span><br><span class="line"></span><br><span class="line">   puts <span class="variable language_">self</span> <span class="comment"># =&gt; Nerd </span></span><br><span class="line"></span><br><span class="line">   <span class="keyword">def</span> <span class="title function_">print_self</span></span><br><span class="line">      puts <span class="variable language_">self</span> <span class="comment"># =&gt; #&lt;Nerd:0x00000000e3f8a0&gt;</span></span><br><span class="line">   <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">nerd_1 = <span class="title class_">Nerd</span>.new</span><br><span class="line">puts nerd_1.print_self()</span><br></pre></td></tr></table></figure>
+<p>从上面代码实例可以看出，在定义类的时候，self为当前类(Nerd), 在方法调用的过程中，self为当前对象(Nerd 类的实例).</p>
+<h2 id="方法查找"><a class="markdownIt-Anchor" href="#方法查找"></a> 方法查找</h2>
+<p>Ruby的方法查找可以用一句话概括： 首先在接收者的类中查找，然后一层层地沿着继承链向上查找。</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/ruby</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#!/usr/bin/ruby</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Nerd</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">parent_method</span></span><br><span class="line">        puts <span class="string">&quot;in parent&quot;</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">SubNerd</span> &lt; <span class="title class_ inherited__">Nerd</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">child_method</span></span><br><span class="line">        puts <span class="string">&quot;in child&quot;</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">sub_nerd_1 = <span class="title class_">SubNerd</span>.new</span><br><span class="line">sub_nerd_1.parent_method() <span class="comment"># =&gt; &quot;in parent&quot;</span></span><br><span class="line">sub_nerd_1.child_method() <span class="comment"># =&gt; &quot;in child&quot;</span></span><br></pre></td></tr></table></figure>
+<p>方法查找的过程如图所示：</p>
+<p><img src="/images/ruby_method_lookup.jpg" alt="" /></p>
+<p>这种查找方法也被简单概括为”向右一步，再向上”规则。</p>
+<p>除了画图以外，也可以通过自省——调用ancestors()方法来获得一个类的继承链。</p>
+ <figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">SubNerd</span>.ancestors() <span class="comment"># =&gt; [SubNerd, Nerd, Object, Kernel, BasicObject]</span></span><br></pre></td></tr></table></figure>
+<h2 id="动态方法定义"><a class="markdownIt-Anchor" href="#动态方法定义"></a> 动态方法定义</h2>
+<p>在运行过程中动态创建组件是元编程的特点。可以通过动态方法定义，来消除定义相似方法时产生的重复代码。</p>
+<p>假设我们在Nerd类中定义了两个简单的方法：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/ruby</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Nerd</span></span><br><span class="line">    <span class="built_in">attr_reader</span> <span class="symbol">:name</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">initialize</span></span><br><span class="line">       <span class="variable">@name</span> = <span class="string">&quot;yue&quot;</span> </span><br><span class="line">       <span class="variable">@age</span> = <span class="number">25</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">print_name</span></span><br><span class="line">        puts <span class="string">&quot;The name is <span class="subst">#&#123;<span class="variable">@name</span>&#125;</span>&quot;</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">print_age</span></span><br><span class="line">        puts <span class="string">&quot;The name is <span class="subst">#&#123;<span class="variable">@name</span>&#125;</span>&quot;</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>可以利用Module#define_mthod()来定义一个方法，只需提供一个方法名和充当方法主体的块：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/ruby</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Nerd</span></span><br><span class="line">    <span class="built_in">attr_reader</span> <span class="symbol">:name</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">initialize</span></span><br><span class="line">       <span class="variable">@name</span> = <span class="string">&quot;yue&quot;</span> </span><br><span class="line">       <span class="variable">@age</span> = <span class="number">25</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">    </span><br><span class="line">    [<span class="string">&quot;name&quot;</span>, <span class="string">&quot;age&quot;</span>].each <span class="keyword">do</span> |<span class="params">attr</span>|</span><br><span class="line">        <span class="built_in">define_method</span>(<span class="string">&quot;print_<span class="subst">#&#123;attr&#125;</span>&quot;</span>) <span class="keyword">do</span> </span><br><span class="line">            variable = <span class="string">&quot;@<span class="subst">#&#123;attr&#125;</span>&quot;</span> </span><br><span class="line">            puts <span class="string">&quot;The name is <span class="subst">#&#123;instance_variable_get(variable)&#125;</span>&quot;</span></span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">end</span>   </span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">nerd_1 = <span class="title class_">Nerd</span>.new</span><br><span class="line">nerd_1.print_name</span><br><span class="line">nerd_1.print_age</span><br></pre></td></tr></table></figure>
+<h2 id="动态方法调用"><a class="markdownIt-Anchor" href="#动态方法调用"></a> 动态方法调用</h2>
+<p>通常的方法调用通过(.)操作符，将方法发送给指定的对象。</p>
+<p>ruby 提供了Object#send()方法，来支持动态方法调用。通过send()方法，可以将需要调用的方法名当作参数传递，增加了一层间接性，使方法调用变得更加灵活。这种技术被称为动态派发(Dynamic Dispatch)。</p>
+<p>在上一节的代码示例中，可以使用动态方法调用消除最后两行代码的重复性：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">nerd_1 = <span class="title class_">Nerd</span>.new</span><br><span class="line">[<span class="string">&quot;name&quot;</span>, <span class="string">&quot;age&quot;</span>].each <span class="keyword">do</span> |<span class="params">attr</span>|</span><br><span class="line">    nerd_1.send(<span class="string">&quot;print_<span class="subst">#&#123;attr&#125;</span>&quot;</span>)    </span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<h2 id="幽灵方法"><a class="markdownIt-Anchor" href="#幽灵方法"></a> 幽灵方法</h2>
+<p>当需要定义许多类似的方法时，可以通过只定义method_missing()方法来消除重复。如果方法查找没有找到对应的方法，将会触发method_missing()方法。</p>
+<p>从调用者的角度看，这和调用普通方法没有区别，但实际上接受者并没有明确定义相对应的方法。因此method_missing()也被称为幽灵方法(Ghost Method).</p>
+<p>下面是一个用幽灵方法来模拟动态代理的示例：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/ruby</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">NerdProxy</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">sleep</span></span><br><span class="line">       puts <span class="string">&quot;sleeping&quot;</span> </span><br><span class="line">    <span class="keyword">end</span>    </span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">play</span></span><br><span class="line">       puts <span class="string">&quot;playing&quot;</span> </span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Nerd</span></span><br><span class="line">    <span class="built_in">attr_reader</span> <span class="symbol">:name</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">initialize</span></span><br><span class="line">       <span class="variable">@name</span> = <span class="string">&quot;yue&quot;</span> </span><br><span class="line">       <span class="variable">@age</span> = <span class="number">25</span></span><br><span class="line">       <span class="variable">@proxy</span> = <span class="title class_">NerdProxy</span>.new</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">code</span></span><br><span class="line">           puts <span class="string">&quot;coding&quot;</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">   </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">method_missing</span>(<span class="params">name, *args</span>)</span><br><span class="line">        <span class="variable">@proxy</span>.send(name) </span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">nerd_1 = <span class="title class_">Nerd</span>.new</span><br><span class="line">nerd_1.code</span><br><span class="line">nerd_1.sleep</span><br></pre></td></tr></table></figure>
+<p>通过method_missing 方法，将Nerd类未定义的方法转发给代理类。</p>
+<p>关于ruby方法我们就研究这么多，下一篇将研究ruby的作用域。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2015/04/22/ruby-2015-4-22-ruby-meta-programming-2/" data-id="cmlkuqb27002lt6lhcyki0j34" data-title="Ruby元编程系列2 – 方法" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/04/23/ruby-2015-4-23-ruby-meta-programming-3/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Ruby元编程系列3 – 作用域
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/04/14/ruby-2015-4-14-ruby-meta-programming-1/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Ruby元编程系列1 -- 对象和类</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

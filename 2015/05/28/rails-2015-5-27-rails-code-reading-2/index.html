@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Rails源码管窥2 - render内幕 | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="引言 Model-View-Controller(MVC)是Rails的核心架构。在Controller定义的方法中，最后一步通常是调用render函数，将Controller生成的数据渲染到指定的template， 例如：format.json &#123; render json: @article.errors, status: :unprocessable_entity &#125; ,">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Rails源码管窥2 - render内幕">
+<meta property="og:url" content="http://demonyangyue.github.io/2015/05/28/rails-2015-5-27-rails-code-reading-2/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="引言 Model-View-Controller(MVC)是Rails的核心架构。在Controller定义的方法中，最后一步通常是调用render函数，将Controller生成的数据渲染到指定的template， 例如：format.json &#123; render json: @article.errors, status: :unprocessable_entity &#125; ,">
+<meta property="og:locale">
+<meta property="article:published_time" content="2015-05-27T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-20T06:28:07.586Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="Rails">
+<meta property="article:tag" content="Web">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-rails-2015-5-27-rails-code-reading-2" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/05/28/rails-2015-5-27-rails-code-reading-2/" class="article-date">
+  <time class="dt-published" datetime="2015-05-27T16:00:00.000Z" itemprop="datePublished">2015-05-28</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Rails源码管窥2 - render内幕
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>Model-View-Controller(MVC)是Rails的核心架构。在Controller定义的方法中，最后一步通常是调用render函数，将Controller生成的数据渲染到指定的template， 例如：<code>format.json &#123; render json: @article.errors, status: :unprocessable_entity &#125;</code> , 那么render函数在调用时，幕后做了什么呢？让我们一起开启探索之旅吧。</p>
+<span id="more"></span>
+<h2 id="render函数调用栈"><a class="markdownIt-Anchor" href="#render函数调用栈"></a> Render函数调用栈</h2>
+<p>开启Byebug进入调试模式，输入step（s）进入render方法内部：</p>
+<blockquote>
+<p>/usr/local/rvm/gems/ruby-2.2.1/gems/actionpack-4.2.1/lib/action_controller/metal/instrumentation.rb</p>
+</blockquote>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">   <span class="number">41</span>:     <span class="keyword">def</span> <span class="title function_">render</span>(<span class="params">*args</span>)</span><br><span class="line">   <span class="number">42</span>:       render_output = <span class="literal">nil</span></span><br><span class="line">   <span class="number">43</span>:       <span class="variable language_">self</span>.view_runtime = cleanup_view_runtime <span class="keyword">do</span></span><br><span class="line">=&gt; <span class="number">44</span>:         <span class="title class_">Benchmark</span>.ms &#123; render_output = super &#125;</span><br><span class="line">   <span class="number">45</span>:       <span class="keyword">end</span></span><br><span class="line">   <span class="number">46</span>:       render_output</span><br><span class="line">   <span class="number">47</span>:     <span class="keyword">end</span></span><br><span class="line">   <span class="number">48</span>: </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>发现render函数嵌在Benchmark.ms方法中，于是我们就可以知道每一次render消耗的时间咯。</p>
+<p>从44行可以看出，实际在调用父类的render（）方法， step进去一探究竟吧：</p>
+<blockquote>
+<p>/usr/local/rvm/gems/ruby-2.2.1/gems/actionpack-4.2.1/lib/abstract_controller/rendering.rb</p>
+</blockquote>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">   <span class="number">20</span>:     <span class="comment"># Normalize arguments, options and then delegates render_to_body and</span></span><br><span class="line">   <span class="number">21</span>:     <span class="comment"># sticks the result in self.response_body.</span></span><br><span class="line">   <span class="number">22</span>:     <span class="comment"># :api: public</span></span><br><span class="line">   <span class="number">23</span>:     <span class="keyword">def</span> <span class="title function_">render</span>(<span class="params">*args, &amp;block</span>)</span><br><span class="line">=&gt; <span class="number">24</span>:       options = _normalize_render(*args, &amp;block)</span><br><span class="line">   <span class="number">25</span>:       <span class="variable language_">self</span>.response_body = render_to_body(options)</span><br><span class="line">   <span class="number">26</span>:       _process_format(rendered_format, options) <span class="keyword">if</span> rendered_format</span><br><span class="line">   <span class="number">27</span>:       <span class="variable language_">self</span>.response_body</span><br><span class="line">   <span class="number">28</span>:     <span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p><code>_normalize_render()</code>函数的主要作用是将用户传入的参数转换成hash。<br />
+那么<code>render_to_body()</code>做了什么呢？</p>
+<blockquote>
+<p>/usr/local/rvm/gems/ruby-2.2.1/gems/actionpack-4.2.1/lib/action_controller/metal/renderers.rb</p>
+</blockquote>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">   <span class="number">36</span>:     <span class="keyword">def</span> <span class="title function_">render_to_body</span>(<span class="params">options</span>)</span><br><span class="line">=&gt; <span class="number">37</span>:       _render_to_body_with_renderer(options) |<span class="params"></span>| super</span><br><span class="line">   <span class="number">38</span>:     <span class="keyword">end</span></span><br><span class="line">   <span class="number">39</span>: </span><br></pre></td></tr></table></figure>
+<p>如果在<code>/metal/renderers.rb</code>中定义了相应格式（如json,xml）的render，则<code>render_to_body()</code>会调用定义的诸如<code>_render_with_renderer_json</code>方法。</p>
+<blockquote>
+<p>/usr/local/rvm/gems/ruby-2.2.1/gems/actionpack-4.2.1/lib/action_controller/metal/renderers.rb</p>
+</blockquote>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">   <span class="number">40</span>:     <span class="keyword">def</span> <span class="title function_">_render_to_body_with_renderer</span>(<span class="params">options</span>)</span><br><span class="line">   <span class="number">41</span>:       _renderers.each <span class="keyword">do</span> |<span class="params">name</span>|</span><br><span class="line">   <span class="number">42</span>:         <span class="keyword">if</span> options.key?(name)</span><br><span class="line">   <span class="number">43</span>:           _process_options(options)</span><br><span class="line">=&gt; <span class="number">44</span>:           method_name = <span class="title class_">Renderers</span>._render_with_renderer_method_name(name)</span><br><span class="line">   <span class="number">45</span>:           <span class="keyword">return</span> send(method_name, options.delete(name), options)</span><br></pre></td></tr></table></figure>
+<p>如果没有定义相应格式的render， 则<code>render_to_body()</code>会沿着继承链一层层向上转发，最后到达<code>ActionView::Rendering</code>类：</p>
+<blockquote>
+<p>/usr/local/rvm/gems/ruby-2.2.1/gems/actionview-4.2.1/lib/action_view/rendering.rb</p>
+</blockquote>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">   <span class="number">81</span>:     <span class="keyword">def</span> <span class="title function_">render_to_body</span>(<span class="params">options = &#123;&#125;</span>)</span><br><span class="line">   <span class="number">82</span>:       _process_options(options)</span><br><span class="line">=&gt; <span class="number">83</span>:       _render_template(options)</span><br><span class="line">   <span class="number">84</span>:     <span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p><code>_render_template()</code>方法的定义为：</p>
+<blockquote>
+<p>/usr/local/rvm/gems/ruby-2.2.1/gems/actionview-4.2.1/lib/action_view/rendering.rb</p>
+</blockquote>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">   <span class="number">94</span>:       <span class="keyword">def</span> <span class="title function_">_render_template</span>(<span class="params">options</span>) <span class="comment">#:nodoc:</span></span><br><span class="line">=&gt; <span class="number">95</span>:         variant = options[<span class="symbol">:variant</span>]</span><br><span class="line">   <span class="number">96</span>: </span><br><span class="line">   <span class="number">97</span>:         lookup_context.rendered_format = <span class="literal">nil</span> <span class="keyword">if</span> options[<span class="symbol">:formats</span>]</span><br><span class="line">   <span class="number">98</span>:         lookup_context.variants = variant <span class="keyword">if</span> variant</span><br><span class="line">   <span class="number">99</span>: </span><br><span class="line">   <span class="number">100</span>:        view_renderer.render(view_context, options)</span><br><span class="line">   <span class="number">101</span>:      <span class="keyword">end</span></span><br><span class="line">   <span class="number">102</span>: </span><br></pre></td></tr></table></figure>
+<p>最终的模板渲染由<code>view_renderer.render(view_context,options)</code>完成，其中view_context是模板解析的上下文，是<code>ActionView::Base</code>类型的实例。</p>
+<p>到此为止，我们对render函数已经有了比较完整的认识，就在这里停下吧~</p>
+<h2 id="挑战-卸载多余模块"><a class="markdownIt-Anchor" href="#挑战-卸载多余模块"></a> 挑战 —— 卸载多余模块</h2>
+<p>在rails中，由Module组成的继承链是独具匠心的设计，可以让我们按照需求方便地添加和删除功能。</p>
+<p>比如在render函数调用时，我想移除Benchmark相关的功能，可以怎么做呢？</p>
+<p>Rails 每一个子模块，都有一个基本的base类型，比如ActionController的基本类型为ActionController::Base, 定义在<code>gems/abstract_controller/base.rb</code>中。在定义Base时，通过include模块的方式，定义了继承链，动态添加所需的功能。</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Base</span> &lt; <span class="title class_ inherited__">Metal</span></span><br><span class="line">  abstract!</span><br><span class="line"></span><br><span class="line">  <span class="keyword">def</span> <span class="title function_">self</span>.without_modules(*modules)</span><br><span class="line">    modules = modules.map <span class="keyword">do</span> |<span class="params">m</span>|</span><br><span class="line">      m.is_a?(<span class="title class_">Symbol</span>) ? <span class="title class_">ActionController</span>.const_get(m) : m</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">    <span class="variable constant_">MODULES</span> - modules</span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">  <span class="variable constant_">MODULES</span> = [</span><br><span class="line">    <span class="title class_">AbstractController</span><span class="symbol">:</span><span class="symbol">:Rendering</span>,</span><br><span class="line">    <span class="title class_">AbstractController</span><span class="symbol">:</span><span class="symbol">:Translation</span>,</span><br><span class="line">    <span class="title class_">AbstractController</span><span class="symbol">:</span><span class="symbol">:AssetPaths</span>,</span><br><span class="line"></span><br><span class="line">    <span class="title class_">Helpers</span>,</span><br><span class="line">    <span class="title class_">HideActions</span>,</span><br><span class="line">    <span class="title class_">UrlFor</span>,</span><br><span class="line">    <span class="title class_">Redirecting</span>,</span><br><span class="line">    <span class="title class_">ActionView</span><span class="symbol">:</span><span class="symbol">:Layouts</span>,</span><br><span class="line">    <span class="title class_">Rendering</span>,</span><br><span class="line">    <span class="title class_">Renderers</span><span class="symbol">:</span><span class="symbol">:All</span>,</span><br><span class="line">    <span class="title class_">ConditionalGet</span>,</span><br><span class="line">    <span class="title class_">EtagWithTemplateDigest</span>,</span><br><span class="line">    <span class="title class_">RackDelegation</span>,</span><br><span class="line">    <span class="title class_">Caching</span>,</span><br><span class="line">    <span class="title class_">MimeResponds</span>,</span><br><span class="line">    <span class="title class_">ImplicitRender</span>,</span><br><span class="line">    <span class="title class_">StrongParameters</span>,</span><br><span class="line"></span><br><span class="line">    <span class="title class_">Cookies</span>,</span><br><span class="line">    <span class="title class_">Flash</span>,</span><br><span class="line">    <span class="title class_">RequestForgeryProtection</span>,</span><br><span class="line">    <span class="title class_">Force</span>SSL,</span><br><span class="line">    <span class="title class_">Streaming</span>,</span><br><span class="line">    <span class="title class_">DataStreaming</span>,</span><br><span class="line">    <span class="title class_">HttpAuthentication</span><span class="symbol">:</span><span class="symbol">:Basic</span><span class="symbol">:</span><span class="symbol">:ControllerMethods</span>,</span><br><span class="line">    <span class="title class_">HttpAuthentication</span><span class="symbol">:</span><span class="symbol">:Digest</span><span class="symbol">:</span><span class="symbol">:ControllerMethods</span>,</span><br><span class="line">    <span class="title class_">HttpAuthentication</span><span class="symbol">:</span><span class="symbol">:Token</span><span class="symbol">:</span><span class="symbol">:ControllerMethods</span>,</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Before callbacks should also be executed the earliest as possible, so</span></span><br><span class="line">    <span class="comment"># also include them at the bottom.</span></span><br><span class="line">    <span class="title class_">AbstractController</span><span class="symbol">:</span><span class="symbol">:Callbacks</span>,</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Append rescue at the bottom to wrap as much as possible.</span></span><br><span class="line">    <span class="title class_">Rescue</span>,</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Add instrumentations hooks at the bottom, to ensure they instrument</span></span><br><span class="line">    <span class="comment"># all the methods properly.</span></span><br><span class="line">    <span class="title class_">Instrumentation</span>,</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Params wrapper should come before instrumentation so they are</span></span><br><span class="line">    <span class="comment"># properly showed in logs</span></span><br><span class="line">    <span class="title class_">ParamsWrapper</span></span><br><span class="line">  ]</span><br><span class="line"></span><br><span class="line">  <span class="variable constant_">MODULES</span>.each <span class="keyword">do</span> |<span class="params">mod</span>|</span><br><span class="line">    <span class="keyword">include</span> mod</span><br><span class="line">  <span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>如果我们需要移除BenchMark模块，可以这样定义controller:</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">MyController</span></span><br><span class="line">    <span class="title class_">ActionController</span><span class="symbol">:</span><span class="symbol">:Base</span>.without_modules(<span class="symbol">:BenchMark</span>).each <span class="keyword">do</span> |<span class="params">left</span>|</span><br><span class="line">        <span class="keyword">include</span> left</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>调试MyController时，会发现不再有性能分析相关的代码被执行。</p>
+<p>关于render函数的调用，我们暂时就研究到这里，下一节让我们一起探索rails中的模板查找机制吧~</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2015/05/28/rails-2015-5-27-rails-code-reading-2/" data-id="cmlkuqb25001rt6lh84cp0idn" data-title="Rails源码管窥2 - render内幕" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/06/01/rails-2015-6-1-rails-code-reading-3/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Rails源码管窥3 - 模板查找
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/05/27/rails-2015-5-27-rails-code-reading-1/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Rails源码管窥1 - 工具篇</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

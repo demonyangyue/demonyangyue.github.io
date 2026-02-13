@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Akka in Scala Part 1 - Java dosen&#39;t work | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Java 之殇 我无意挑起编程宗教间的争论，仅仅想阐述一个简单的事实 – Java doesn’t work. 你从最优秀的Java书籍中学到了解耦接口与实现，于是开始热衷于设计出各种各样的接口，然而这些接口要么支持的方法太少，沦为几乎无用的鸡肋，要么需要实现方法太多，给子类造成沉重的负担。Java还慷慨地给了你额外的’奖励’ – 同样的方法声明在各个子类中需要一遍又一遍地重复，如同遭受了计算机">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Akka in Scala Part 1 - Java dosen&#39;t work">
+<meta property="og:url" content="http://demonyangyue.github.io/2016/04/08/akka-2016-4-8-akka-in-scala-1/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="Java 之殇 我无意挑起编程宗教间的争论，仅仅想阐述一个简单的事实 – Java doesn’t work. 你从最优秀的Java书籍中学到了解耦接口与实现，于是开始热衷于设计出各种各样的接口，然而这些接口要么支持的方法太少，沦为几乎无用的鸡肋，要么需要实现方法太多，给子类造成沉重的负担。Java还慷慨地给了你额外的’奖励’ – 同样的方法声明在各个子类中需要一遍又一遍地重复，如同遭受了计算机">
+<meta property="og:locale">
+<meta property="og:image" content="http://demonyangyue.github.io/images/deadlock.png">
+<meta property="article:published_time" content="2016-04-07T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-20T06:28:07.583Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="Akka">
+<meta property="article:tag" content="Scala">
+<meta property="article:tag" content="Cloud Computing">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://demonyangyue.github.io/images/deadlock.png">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-akka-2016-4-8-akka-in-scala-1" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/04/08/akka-2016-4-8-akka-in-scala-1/" class="article-date">
+  <time class="dt-published" datetime="2016-04-07T16:00:00.000Z" itemprop="datePublished">2016-04-08</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Akka in Scala Part 1 - Java dosen&#39;t work
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="java-之殇"><a class="markdownIt-Anchor" href="#java-之殇"></a> Java 之殇</h2>
+<p>我无意挑起编程宗教间的争论，仅仅想阐述一个简单的事实 – Java doesn’t work.</p>
+<p>你从最优秀的Java书籍中学到了解耦接口与实现，于是开始热衷于设计出各种各样的接口，然而这些接口要么支持的方法太少，沦为几乎无用的鸡肋，要么需要实现方法太多，给子类造成沉重的负担。Java还慷慨地给了你额外的’奖励’ – 同样的方法声明在各个子类中需要一遍又一遍地重复，如同遭受了计算机世界中恶灵的诅咒。</p>
+<p>你从最优秀的Java博客中掌握了设计模式，开始实现各种各样的单件类，如同发现新大陆一般对访问权限控制，枚举变量之类的奇技淫巧兴奋不已。然而所有的设计模式，背后都对应着现实中的高频需求，在Java的内在世界，这些需求却被无情地置于荒漠之中。</p>
+<p>Java最大的魅力在于，这门语言总在试图表达正确的概念，却总能展现丑陋的实现，这一点在并发编程领域，体现得淋漓尽致。</p>
+<span id="more"></span>
+<h2 id="无尽的绝望"><a class="markdownIt-Anchor" href="#无尽的绝望"></a> 无尽的绝望</h2>
+<p>Java 并发基于线程和锁模型，相对于多进程，更加轻量并且易于数据共享。</p>
+<p>然而 <strong>共享可变状态</strong>， 这个并发世界的魔鬼一旦从瓶中放出，厄运的齿轮便开始不停转动。</p>
+<p>我们创建一个最简单计数器类，为了支持多个线程同时读写，引入synchoronized进行同步：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Counter</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">String</span> <span class="variable">name</span> <span class="operator">=</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> <span class="variable">count</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">getName</span><span class="params">()</span>&#123; <span class="keyword">return</span> name; &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">setName</span><span class="params">(String n)</span>&#123; name = n; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">increase</span><span class="params">()</span> &#123; ++count; &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">getCount</span><span class="params">()</span> &#123; <span class="keyword">return</span> count; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>看起来一切都很美好，多个线程可以同时读取数据，提高了效率，写操作进行了同步，于是不会有竞争。</p>
+<h3 id="乱序执行"><a class="markdownIt-Anchor" href="#乱序执行"></a> 乱序执行</h3>
+<p>然而在现实世界中，代码会被乱序执行。为了提高代码运行的效率，编译器会做静态优化，JVM会做动态优化，这些优化可能会打乱代码的执行顺序：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Hell</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">Counter</span> <span class="variable">counter</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Counter</span>();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> <span class="type">Thread</span> <span class="variable">t1</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Thread</span>() &#123;</span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">            counter.increase();</span><br><span class="line">            counter.setName(<span class="string">&quot;counter&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> <span class="type">Thread</span> <span class="variable">t2</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Thread</span>() &#123;</span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (!counter.getName().isEmpty()) &#123;</span><br><span class="line">                System.out.println(counter.getName() + <span class="string">&quot; now is &quot;</span> + counter.getCount());</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                System.out.println(<span class="string">&quot;The counter doesn&#x27;t have a name yet&quot;</span>);</span><br><span class="line">            &#125;     </span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span> <span class="params">(String [] args)</span> <span class="keyword">throws</span> InterruptedException &#123;</span><br><span class="line">        t1.start(); t2.start();</span><br><span class="line">        t1.join(); t2.join();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输出可能是&quot;counter now is 0&quot;, 看起来像是<code>set_name()</code>方法在<code>increase()</code>之前被调用。</p>
+<h3 id="内存可见性"><a class="markdownIt-Anchor" href="#内存可见性"></a> 内存可见性</h3>
+<p>比乱序执行更糟的是，一个线程的修改会对令一个线程不可见：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="type">Thread</span> <span class="variable">t2</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Thread</span>() &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">while</span> (counter.getName().isEmpty()) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;The counter doesn&#x27;t have a name yet&quot;</span>);</span><br><span class="line">        &#125; </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>在一个线程中对<code>name</code>修改可能在另一个线程中不可见，导致这个循环永远无法停止。</p>
+<h3 id="java内存模型"><a class="markdownIt-Anchor" href="#java内存模型"></a> Java内存模型</h3>
+<p>为了解决乱序执行和内存可见性的问题，依据Java内存模型(Java Memory Mode, JMM) <a href="https://www.cs.umd.edu/~pugh/java/memoryModel/jsr-133-faq.html">JSR 133</a> 的定义, 我们需要把读操作和写操作都加锁进行同步。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">synchronized</span> String <span class="title function_">getName</span><span class="params">()</span>&#123; <span class="keyword">return</span> name; &#125;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">setName</span><span class="params">(String n)</span>&#123; name = n; &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">increase</span><span class="params">()</span> &#123; ++count; &#125;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="type">int</span> <span class="title function_">getCount</span><span class="params">()</span> &#123; <span class="keyword">return</span> count; &#125;</span><br></pre></td></tr></table></figure>
+<p>但是随着越来越多的锁被加入，性能会变得越来越差，讽刺的是，我们引入并发的初衷是为了提高性能。</p>
+<p>竞态条件和内存可见性并不是最难缠的问题，真正的灾难在于 – 死锁。</p>
+<h3 id="死锁"><a class="markdownIt-Anchor" href="#死锁"></a> 死锁</h3>
+<p>按照CSAPP的解释，当多个线程以错误的顺序获取和释放资源时，就会造成死锁。</p>
+<p><img src="/images/deadlock.png" alt="" /></p>
+<p>一个典型的例子是<a href="https://www.cs.mtu.edu/~shene/NSF-3/e-Book/MUTEX/TM-example-philos-1.html">哲学家进餐问题</a>。</p>
+<p>解决的方案是按全局一致的顺序进行加锁和解锁，</p>
+<p>但是现实情况是，系统通常比较复杂，我们根本无从知晓全局顺序。</p>
+<p>绝望么？</p>
+<p>还有更难缠的，第三库提供的API，由于我们并不清楚其内部实现细节，当这些API内部使用锁时，我们对此一无所知。如果我们自己的synchronized代码块内部调用了这些API，就会在毫不知情的情况下使用了两把锁，这就有可能发生死锁。</p>
+<p>现在，绝望么？</p>
+<h2 id="反思"><a class="markdownIt-Anchor" href="#反思"></a> 反思</h2>
+<p>你可以使用<em>java.concurrent.util</em>之类的工具帮助解决某些特定的问题，但是核心的缺陷——<strong>共享可变状态</strong>， 并没有被真正克服。</p>
+<p>线程，锁，信号量，条件变量，关于并发编程我们已经学习了很多，最宝贵的经验是——并发编程很难，难以开发，<a href="http://stackoverflow.com/questions/12159/how-should-i-unit-test-threaded-code">难以测试</a>，难以重构。</p>
+<p>编写并发程序的时候，我们经常处于这样一种怪圈：</p>
+<ol>
+<li>想让程序执行得更快，所以增加并发。</li>
+<li>发现各种bug，于是增加同步机制来保证确定性。</li>
+<li>于是陷入了串行和等待，发现程序性能下降。</li>
+<li>循环步骤1</li>
+</ol>
+<p>性能的损失并不是最致命的，最大的困难是存在太多的陷阱，大部分时候我们已经深陷其中却不自知，最终我们发现几乎无法写出完全正确的程序。</p>
+<p>并发程序之所以难，是因为<strong>错误</strong>的工具为我们提供了<strong>错误</strong>的抽象。</p>
+<p>传统的并发模型与人类的认知模型格格不入。人的大脑本质上是单线程的，我们无法在同一时刻同时做两件事 - 比如左手画方，右手画圆，并且当人们专注于一件事，却突然被另外一件事打断时，上下文切换的成本是很高的。编程的本质是把世界运行的逻辑翻译给计算机听，当我们试图通过线程和锁编程时，实际上是在以一种违反认知模型的方式去对事情进行建模，注定要饱受摧残。</p>
+<h2 id="the-akka-way"><a class="markdownIt-Anchor" href="#the-akka-way"></a> The Akka Way</h2>
+<p>不同于传统的基于共享状态的并发模型，akka基于消息传递模型实现并发，并提供了一组强大的工具，将我们从Java地狱中拯救出来。</p>
+<p>Akka是Scala的标准并发库，scala这类函数式编程语言的基石是不可变量(immutable value)，从根本上杜绝了可变状态。Akka 鼓励使用不可变量，但如果不可避免地要使用变量，那么这个变量会被隐藏在actor内部，只能通过消息传递来获取或改变其状态，而不和外界共享，保证了不会落入传统并发编程<strong>共享可变状态</strong>的陷阱。</p>
+<p>让我们开启Akka的探索之旅吧！</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2016/04/08/akka-2016-4-8-akka-in-scala-1/" data-id="cmlkuqb1z0005t6lh1533fzy2" data-title="Akka in Scala Part 1 - Java dosen&#39;t work" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/04/28/akka-2016-4-28-akka-in-scala-2/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Akka in Scala Part 2 - Akka 并发之道
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/09/16/mesos-2015-9-16-mesos-sharing/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Mesos 札记</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

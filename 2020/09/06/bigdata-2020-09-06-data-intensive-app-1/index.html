@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>设计数据密集型应用1 —— 序 | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="引言 最近阅读了《Designing Data-Intensive Applications》，结合自己的理解，总结一些心得体会。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="设计数据密集型应用1 —— 序">
+<meta property="og:url" content="http://demonyangyue.github.io/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="引言 最近阅读了《Designing Data-Intensive Applications》，结合自己的理解，总结一些心得体会。">
+<meta property="og:locale">
+<meta property="og:image" content="http://demonyangyue.github.io/images/data_intensive_app/multiple_components.jpg">
+<meta property="article:published_time" content="2020-09-05T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-20T06:28:07.584Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="Cloud Computing">
+<meta property="article:tag" content="Big Data">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://demonyangyue.github.io/images/data_intensive_app/multiple_components.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-bigdata-2020-09-06-data-intensive-app-1" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/" class="article-date">
+  <time class="dt-published" datetime="2020-09-05T16:00:00.000Z" itemprop="datePublished">2020-09-06</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      设计数据密集型应用1 —— 序
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>最近阅读了《Designing Data-Intensive Applications》，结合自己的理解，总结一些心得体会。</p>
+<span id="more"></span>
+<h2 id="背景"><a class="markdownIt-Anchor" href="#背景"></a> 背景</h2>
+<p>我们正处在信息爆炸的互联网时代，随着移动互联网、云计算、IOT等领域的不断发展，数据的总量和复杂度在飞速增长，目前全球每天约有2.5quintillion(10亿乘以10亿)字节的数据产生(<a href="https://www.globenewswire.com/news-release/2020/03/02/1993369/0/en/Big-Data-Analytics-Industry-Report-2020-Rapidly-Increasing-Volume-Complexity-of-Data-Cloud-Computing-Traffic-and-Adoption-of-IoT-AI-are-Driving-Growth.html#:~:text=The%20rapidly%20increasing%20volume%20and,of%20data%20generated%20every%20day.">2020.3月数据</a>)。</p>
+<p>大数据是互联网时代的石油，蕴藏着无限的价值。<br />
+收集海量数据、发掘数据价值，是互联网公司的核心增长手段，数据智能已经成为推动<a href="https://book.douban.com/subject/30357931/">智能商业</a>增长的核心引擎之一。</p>
+<p>然而，从信息匮乏过渡到信息爆炸时代，从1989年web诞生至今，这场变迁是在短短30年内发生的。我们还没有做好充分准备，就已经被海量的数据所包围。如何充分释放出大数据的价值，让数据成为资产而非负担，是每一位大数据系统参与者，都需要思考的问题。</p>
+<p>希望通过本系列文章，能够系统描述，大数据系统设计领域的核心理念、架构方案与具体实现。</p>
+<h2 id="数据密集型应用"><a class="markdownIt-Anchor" href="#数据密集型应用"></a> 数据密集型应用</h2>
+<p>数据密集型应用(data-intensive application), 和计算密集型应用(compute-intensive application)相对应。计算密集型应用的瓶颈在于CPU的处理速度，而数据密集型应用更大的挑战是数据———— 数据量、数据的复杂度以及数据的变化速率。</p>
+<p>我们平时接触的很多系统，都属于数据密集型应用，典型的有:</p>
+<ul>
+<li>数据库</li>
+<li>缓存</li>
+<li>搜索引擎</li>
+<li>流式处理。A应用发出一条消息，B应用进行异步处理。</li>
+<li>批处理。对数据进行周期性地分析统计统计。</li>
+</ul>
+<h2 id="为什么需要理解数据密集型应用"><a class="markdownIt-Anchor" href="#为什么需要理解数据密集型应用"></a> 为什么需要理解数据密集型应用</h2>
+<p>现代的数据系统，基本都具有丰富的功能和详尽的文档，我们直接拿来使用就可以，为什么需要去深入理解概念和原理呢？毕竟实际工作中，几乎没有需要从头设计一个数据库、搜索引擎的场景。</p>
+<p>但是作为开发者，在现实场景中，需要解决的问题是千差万别的，只有掌握了底层的原理，才能在技术选型和架构设计时，找到最切合当前场景的技术方案，并加以整合与创新，解决实际问题。</p>
+<p>对于数据库、消息队列、缓存、搜索引擎等各种数据处理系统，我们不仅需要分别进行探索研究，还需要把这些系统作为一个整体进行思考，这是因为:</p>
+<ul>
+<li>
+<p>系统间的功能边界，正在变得越来越模糊。比如Redis，本身是一个基于内存的分布式数据库，实际场景中经常被用作分布式缓存，但是也可以作为一个简单的消息队列使用。</p>
+</li>
+<li>
+<p>实际场景的复杂度越来越高，单个系统常常不足以解决问题，需要将多个系统拼装组合起来。以下是一个实际业务场景的架构示意图:</p>
+</li>
+</ul>
+<p><img src="/images/data_intensive_app/multiple_components.jpg" alt="" /></p>
+<h2 id="数据密集型应用设计时需要考虑的问题"><a class="markdownIt-Anchor" href="#数据密集型应用设计时需要考虑的问题"></a> 数据密集型应用设计时需要考虑的问题</h2>
+<p>数据密集型应用在设计时，需要考虑很多问题，例如:</p>
+<ul>
+<li>如何保证数据的正确新和完整性，哪怕是在系统中发生错误的时候？</li>
+<li>如何保证系统能够持续提供良好的性能，哪怕是在系统的部分组件已经降级的时候？</li>
+<li>如何保证系统的弹性，来应对不断增长的负载压力？</li>
+</ul>
+<p>本系列文章，主要讨论设计数据密集型应用时所需要满足的3个重要特性:<strong>可靠性</strong>(Reliability)、<strong>可扩展性</strong>(Scalability)以及<strong>可维护性</strong>(Maintinability)。</p>
+<h3 id="可靠性"><a class="markdownIt-Anchor" href="#可靠性"></a> 可靠性</h3>
+<p>当系统中出现错误的时候，仍然需要保持正常工作，否则就会影响到线上服务的稳定，给业务带来利润和声誉上的损失。</p>
+<p>系统中每天都可能发生各种各样的错误，比如磁盘损坏、程序bug、运维出错等等。我们可以通过提高机器规格、优化程序质量、引入DevOps实践等多种方式减少错误的发生，但是完全杜绝错误的发生是不现实的。所以系统在设计时，需要考虑如何在错误发生时，也能够正常运行，这被称作系统的容错性。容错性好的系统，能够在错误发生时，表现得足够健壮，防止<strong>错误</strong>扩大引发<strong>故障</strong>。</p>
+<p>为了验证系统的容错能力，我们甚至会在系统中人为注入错误进行演练，来帮助发现系统的脆弱点，提升系统的健壮性。</p>
+<h3 id="可扩展性"><a class="markdownIt-Anchor" href="#可扩展性"></a> 可扩展性</h3>
+<p>当数据量、数据复杂度增长的时候，系统需要找到合适的方式来应对负载的增长。扩展性用来描述系统处理<strong>更多负载</strong>的能力。</p>
+<p>系统的扩展方式，可以分为<strong>向上扩展</strong>(垂直扩展，使用更加强大的机器)和<strong>向外扩展</strong>(水平扩展，使用更多的机器)。只在单机上运行的程序设计起来比较简单，但是高性能的机器可能会变得非常昂贵，所以当前更多地使用向外扩展的方式来部署分布式程序。在云环境中，甚至可以根据负载的变化，对机器数量进行动态的扩容和缩容。</p>
+<p>为了能够让系统具有好的扩展性，我们需要尽量把系统设计成无状态(shared-nothing)架构，否则扩展的时候会面临很多额外的复杂性。</p>
+<p>对于不同的负载类型，针对扩展性所作出的架构设计决策通常也不同，不存在一套通用的高扩展性架构。设计出可扩展系统的前提，是正确理解系统中的负载类型(比如负载主要是读请求还是写请求)。</p>
+<h3 id="可维护性"><a class="markdownIt-Anchor" href="#可维护性"></a> 可维护性</h3>
+<p>系统上线后的的维护，比如修复bug、日常运维、出错排查、迁移到新平台、偿还技术债、添加新功能等等，是软件生命周期中需要付出的主要成本。历史系统维护，可能是每个程序员都不愿去做，又不得不去面对的事情。</p>
+<p>我们在设计系统时，应当努力降低其维护成本，遵循以下3个设计原则:</p>
+<ul>
+<li>
+<p>可运维(Operability)<br />
+遵循DevOps实践，让日常运维工作变得简单。<br />
+全链路监控系统的运行情况，统计各项运行指标，全面记录日志，在出错的时候能够迅速定位到问题点。</p>
+</li>
+<li>
+<p>简单清晰(Simplicity)<br />
+软件的演化是一个不断熵增的过程，失控的复杂度会让软件变成一个焦油坑，让团队深陷其中。<br />
+软件架构设计的核心目标之一，就是管理演化过程中的复杂度，通过合理的抽象和分层，保证系统的复杂度控制在人们可以理解的范围之内。</p>
+</li>
+<li>
+<p>可演化(Evolvability)<br />
+软件总是在不断的演化，新功能需要不断地被添加到已有系统中。软件架构需要足够的简单清晰，才能让新功能能易于添加，而不必总是担心引起预期外的影响。<br />
+敏捷开发的核心目标之一，就是保证系统的可演化能力。通过Scrum、TDD等手段，快速响应开发过程中的变化。</p>
+</li>
+</ul>
+<h2 id="总结"><a class="markdownIt-Anchor" href="#总结"></a> 总结</h2>
+<p>为了实现数据密集型应用的目标，我们在设计的时候，既要考虑功能性需求，也要考虑非功能性需求，包括<strong>可靠性</strong>、<strong>可维护性</strong>、<strong>可扩展性</strong>。达成目标并非易事，需要我们具有全局且深入的理解，下面让我们从最基础的数据模型开始，启动数据密集型应用设计之旅吧！</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/" data-id="cmlkuqb21000at6lh0768ekwc" data-title="设计数据密集型应用1 —— 序" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          设计数据密集型应用 —— 数据模型与查询语言
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/05/20/flink-2020-05-20-flink2/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Flink原理、架构与实现Part2 - 原理与架构</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

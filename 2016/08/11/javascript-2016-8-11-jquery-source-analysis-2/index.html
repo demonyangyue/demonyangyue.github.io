@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>jQuery 源码精粹2 -- 选择器 | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="引言 jQuery 主要解决两个问题：  对DOM节点进行操作。 发送Ajax请求并解析响应。  操作DOM节点之前，首先需要选中节点，这一篇我们来研究和节点选择器相关的代码。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="jQuery 源码精粹2 -- 选择器">
+<meta property="og:url" content="http://demonyangyue.github.io/2016/08/11/javascript-2016-8-11-jquery-source-analysis-2/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="引言 jQuery 主要解决两个问题：  对DOM节点进行操作。 发送Ajax请求并解析响应。  操作DOM节点之前，首先需要选中节点，这一篇我们来研究和节点选择器相关的代码。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2016-08-10T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-20T06:28:07.585Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="jQuery">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-javascript-2016-8-11-jquery-source-analysis-2" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/08/11/javascript-2016-8-11-jquery-source-analysis-2/" class="article-date">
+  <time class="dt-published" datetime="2016-08-10T16:00:00.000Z" itemprop="datePublished">2016-08-11</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      jQuery 源码精粹2 -- 选择器
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>jQuery 主要解决两个问题：</p>
+<ul>
+<li>对DOM节点进行操作。</li>
+<li>发送Ajax请求并解析响应。</li>
+</ul>
+<p>操作DOM节点之前，首先需要选中节点，这一篇我们来研究和节点选择器相关的代码。</p>
+<span id="more"></span>
+<h2 id="initjs"><a class="markdownIt-Anchor" href="#initjs"></a> init.js</h2>
+<h3 id="片段一"><a class="markdownIt-Anchor" href="#片段一"></a> 片段一</h3>
+<p>在上一篇我们提到，在生成<code>jQuery.fn.init</code>实例时，通过解析传入的<code>selector</code>参数，根据不同的<code>selector</code>形式，生成相应的<code>jQuery object</code>，那么背后的代码具体是如何实现的呢？</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">init = jQuery.<span class="property">fn</span>.<span class="property">init</span> = <span class="keyword">function</span>(<span class="params"> selector, context, root </span>) &#123;</span><br><span class="line">	<span class="keyword">var</span> match, elem;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// HANDLE: $(&quot;&quot;), $(null), $(undefined), $(false)</span></span><br><span class="line">	<span class="keyword">if</span> ( !selector ) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="variable language_">this</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	.....</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>构造函数接收<code>selector</code>, <code>context</code> 和 <code>root</code>三个参数，<code>context</code>通常是一个<code>DOM element</code>，如果为空的话则是<code>document</code>, <code>root</code>通常是<code>document</code>。</p>
+<p>如果传入的<code>selector</code>为空，则不作任何处理直接返回<code>jQuery object</code>。</p>
+<h3 id="片段二"><a class="markdownIt-Anchor" href="#片段二"></a> 片段二</h3>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Handle HTML strings</span></span><br><span class="line"><span class="keyword">if</span> ( <span class="keyword">typeof</span> selector === <span class="string">&quot;string&quot;</span> ) &#123;</span><br><span class="line">	<span class="keyword">if</span> ( selector[ <span class="number">0</span> ] === <span class="string">&quot;&lt;&quot;</span> &amp;&amp;</span><br><span class="line">		selector[ selector.<span class="property">length</span> - <span class="number">1</span> ] === <span class="string">&quot;&gt;&quot;</span> &amp;&amp;</span><br><span class="line">		selector.<span class="property">length</span> &gt;= <span class="number">3</span> ) &#123;</span><br><span class="line"></span><br><span class="line">		<span class="comment">// Assume that strings that start and end with &lt;&gt; are HTML and skip the regex check</span></span><br><span class="line">		match = [ <span class="literal">null</span>, selector, <span class="literal">null</span> ];</span><br><span class="line"></span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		match = rquickExpr.<span class="title function_">exec</span>( selector );</span><br><span class="line">	&#125;</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先处理的是<code>selector</code>为<code>html string</code>的情况，相应的<code>match</code>变量不为空:</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ( match &amp;&amp; ( match[ <span class="number">1</span> ] || !context ) ) &#123;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// HANDLE: $(html) -&gt; $(array)</span></span><br><span class="line">	<span class="keyword">if</span> ( match[ <span class="number">1</span> ] ) &#123;</span><br><span class="line">		jQuery.<span class="title function_">merge</span>( <span class="variable language_">this</span>, jQuery.<span class="title function_">parseHTML</span>(</span><br><span class="line">			match[ <span class="number">1</span> ],</span><br><span class="line">			context &amp;&amp; context.<span class="property">nodeType</span> ? context.<span class="property">ownerDocument</span> || context : <span class="variable language_">document</span>,</span><br><span class="line">			<span class="literal">true</span></span><br><span class="line">		) );</span><br><span class="line">		</span><br><span class="line">		<span class="keyword">return</span> <span class="variable language_">this</span>;</span><br><span class="line">	&#125; </span><br></pre></td></tr></table></figure>
+<p>在这种情况下，调用<code>jQuery.parseHTML()</code>方法来解析传入的<code>html string</code>,生成一组DOM节点，并调用<code>jQuery.merge()</code>方法，将这组DOM节点插入<code>jQuery object</code>。</p>
+<h3 id="片段三"><a class="markdownIt-Anchor" href="#片段三"></a> 片段三</h3>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// HANDLE: $(#id)</span></span><br><span class="line"><span class="keyword">else</span> &#123;</span><br><span class="line">	elem = <span class="variable language_">document</span>.<span class="title function_">getElementById</span>( match[ <span class="number">2</span> ] );</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> ( elem ) &#123;</span><br><span class="line"></span><br><span class="line">		<span class="comment">// Inject the element directly into the jQuery object</span></span><br><span class="line">		<span class="variable language_">this</span>[ <span class="number">0</span> ] = elem;</span><br><span class="line">		<span class="variable language_">this</span>.<span class="property">length</span> = <span class="number">1</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="variable language_">this</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>当传入的<code>string</code>是<code>#id</code>格式时，直接调用JavaScript原生的<code>getElementById</code>方法获取DOM节点，并将其插入<code>jQuery object</code>。</p>
+<h3 id="片段四"><a class="markdownIt-Anchor" href="#片段四"></a> 片段四</h3>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// HANDLE: $(expr, $(...))</span></span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> ( !context || context.<span class="property">jquery</span> ) &#123;</span><br><span class="line">	<span class="keyword">return</span> ( context || root ).<span class="title function_">find</span>( selector );</span><br><span class="line"></span><br><span class="line"><span class="comment">// HANDLE: $(expr, context)</span></span><br><span class="line"><span class="comment">// (which is just equivalent to: $(context).find(expr)</span></span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="variable language_">this</span>.<span class="title function_">constructor</span>(<span class="params"> context </span>).<span class="title function_">find</span>( selector );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果<code>selector</code>字符串是表达是形式，则调用<code>find</code>函数处理。根据<code>selector.js</code>及<code>selector-sizzle</code>中的定义： <code>jQuery.find = Sizzle;</code>, find函数调用<code>Sizzle</code>引擎，来解析selector， 关于<code>Sizzle</code>引擎的原理可以参考其<a href="https://sizzlejs.com">官方文档</a>，本文限于篇幅就不作展开了。</p>
+<p>可以从jQuery<a href="https://api.jquery.com/category/selectors/">官方文档</a>获得完整的<code>selector</code>形式列表，其中的绝大部分是通过<code>Sizzle</code>引擎支持的。</p>
+<h3 id="片段五"><a class="markdownIt-Anchor" href="#片段五"></a> 片段五</h3>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// HANDLE: $(DOMElement)</span></span><br><span class="line">  <span class="keyword">else</span> <span class="keyword">if</span> ( selector.<span class="property">nodeType</span> ) &#123;</span><br><span class="line">	<span class="variable language_">this</span>[ <span class="number">0</span> ] = selector;</span><br><span class="line">	<span class="variable language_">this</span>.<span class="property">length</span> = <span class="number">1</span>;</span><br><span class="line">	<span class="keyword">return</span> <span class="variable language_">this</span>;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>这里处理的是<code>selector</code>为<code>DOMElement</code>的情形，比较简单，直接将<code>DOMElement</code>插入<code>jQuery object</code>。</p>
+<h3 id="片段六"><a class="markdownIt-Anchor" href="#片段六"></a> 片段六</h3>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// HANDLE: $(function)</span></span><br><span class="line"><span class="comment">// Shortcut for document ready</span></span><br><span class="line">  <span class="keyword">else</span> <span class="keyword">if</span> ( jQuery.<span class="title function_">isFunction</span>( selector ) ) &#123;</span><br><span class="line">	<span class="keyword">return</span> root.<span class="property">ready</span> !== <span class="literal">undefined</span> ?</span><br><span class="line">		root.<span class="title function_">ready</span>( selector ) :</span><br><span class="line"></span><br><span class="line">		<span class="comment">// Execute immediately if ready is not present</span></span><br><span class="line">		<span class="title function_">selector</span>( jQuery );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里处理的是一个特殊情况，对于简写形式<code>$(function)</code>,调用其完整版函数<code>document.ready(function)</code>。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2016/08/11/javascript-2016-8-11-jquery-source-analysis-2/" data-id="cmlkuqb240015t6lheops845x" data-title="jQuery 源码精粹2 -- 选择器" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/08/15/javascript-2016-8-15-jquery-source-analyssi-3/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          jQuery 源码精粹3 -- 节点处理
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/08/10/javascript-2016-8-10-jquery-source-analysis-1/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">jQuery 源码精粹1 -- 核心模块</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

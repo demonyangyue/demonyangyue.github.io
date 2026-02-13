@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Akka in Scala Part 3 - Actor | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="引言 在Akka的舞台上，Actor是其主角。Akka程序中，发生的主要事情就是Actor之间传输并处理消息。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Akka in Scala Part 3 - Actor">
+<meta property="og:url" content="http://demonyangyue.github.io/2016/04/29/akka-2016-4-29-akka-in-scala-3/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="引言 在Akka的舞台上，Actor是其主角。Akka程序中，发生的主要事情就是Actor之间传输并处理消息。">
+<meta property="og:locale">
+<meta property="og:image" content="http://demonyangyue.github.io/images/red-packet.png">
+<meta property="article:published_time" content="2016-04-28T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-20T06:28:07.583Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="Akka">
+<meta property="article:tag" content="Scala">
+<meta property="article:tag" content="Cloud Computing">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://demonyangyue.github.io/images/red-packet.png">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-akka-2016-4-29-akka-in-scala-3" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/04/29/akka-2016-4-29-akka-in-scala-3/" class="article-date">
+  <time class="dt-published" datetime="2016-04-28T16:00:00.000Z" itemprop="datePublished">2016-04-29</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Akka in Scala Part 3 - Actor
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>在Akka的舞台上，Actor是其主角。Akka程序中，发生的主要事情就是Actor之间传输并处理消息。</p>
+<span id="more"></span>
+<h2 id="红包程序"><a class="markdownIt-Anchor" href="#红包程序"></a> 红包程序</h2>
+<p>在整个系列博客，我们会通过一个红包生成和发送程序(类似支付宝的咻一咻或者微信摇一摇)，来解释Akka中的主要组件。</p>
+<p>可以从<a href="https://github.com/demonyangyue/RedPacket">github</a>下载完整代码并运行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/demonyangyue/RedPacket</span><br><span class="line"><span class="built_in">cd</span> RedPacket</span><br><span class="line">sbt run</span><br></pre></td></tr></table></figure>
+<p>整个程序的框架为:</p>
+<p><img src="/images/red-packet.png" alt="" /></p>
+<p>后续章节我们会逐步解释各个模块。</p>
+<h2 id="创建actor"><a class="markdownIt-Anchor" href="#创建actor"></a> 创建Actor</h2>
+<h3 id="定义actor类"><a class="markdownIt-Anchor" href="#定义actor类"></a> 定义Actor类</h3>
+<p>在Akka源码中，Actor 是一个base trait：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">Actor</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">receive</span></span>: <span class="type">Actor</span>.<span class="type">Receive</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>用户代码通过定义自己的<code>receive</code>方法，创建自己的Actor类。<br />
+<code>Actor.Receive</code>的实际类型为<code>PartialFunction[Any, Unit]</code>, 是一个接受任意类型的消息，并且不返回结果的偏函数（我们执行<code>receive</code>方法，是为了获得其定义的副作用，而非一个返回值，所以<code>receive</code>并非一个纯函数）。</p>
+<p>现在定义我们的红包生成器<code>RedPacketGenerator</code>, 每次收到客户端发来的<code>RedPacket</code>请求时，就生成一个新的随机红包：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RedPacketGenerator</span> <span class="keyword">extends</span> <span class="title">Actor</span> <span class="keyword">with</span> <span class="title">ActorLogging</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> </span>= &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> <span class="type">RedPacket</span> =&gt; </span><br><span class="line">      <span class="comment">// generate a random red packet, at most $100 !</span></span><br><span class="line">      <span class="keyword">val</span> amount = <span class="type">Random</span>.nextInt(<span class="number">100</span>)</span><br><span class="line">      log.info(<span class="string">&quot;Generate a new red packet!&quot;</span>)</span><br><span class="line">  &#125;	</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>receive</code>方法可以接受任何类型的消息，这是一个非常优雅的设计, 使得akka各个组件之间，可以用一致的方式进行通信。</p>
+<h3 id="创建actor实例"><a class="markdownIt-Anchor" href="#创建actor实例"></a> 创建Actor实例</h3>
+<p>完成类定义之后，我们来创建实例。不同于传统的scala，Akka采用配置类<code>Props</code>来创建actor实例。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> redPacketGenerator = system.actorOf(<span class="type">Props</span>[<span class="type">RedPacketGenerator</span>], <span class="string">&quot;redPacketGenerator&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p>如果Actor类的构造函数包含参数，可以用<code>Props(classOf[ActorWithArgs], &quot;arg&quot;)</code>的形式。</p>
+<p>在上面的代码片段中，<code>redPacketGenerator</code> 的类型是<code>ActorRef</code>而非<code>Actor</code>。在Akka中，<code>actorRef</code>提供了对内部<code>actor</code>对象的封装，用户只能与<code>actorRef</code>进行交互，这样设计的优点在于：</p>
+<ul>
+<li>类似代理模式，向用户屏蔽了内部actor，防止内部actor被直接修改。</li>
+<li>当发生错误时，内部actor会被重新创建，而actorRef并不发生任何改变，使得错误恢复对用户变得透明。</li>
+</ul>
+<h2 id="actor内部结构"><a class="markdownIt-Anchor" href="#actor内部结构"></a> Actor内部结构</h2>
+<p>每个<code>actor</code>有其自己的生命周期，由创建它的父<code>actor</code>进行管理。Actor内部代码定义了一系列的hook，用户代码可以利用这些hook，定义actor在生命周期各个阶段的行为：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">preStart</span></span>(): <span class="type">Unit</span> = ()</span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">postStop</span></span>(): <span class="type">Unit</span> = ()</span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">preRestart</span></span>(reason: <span class="type">Throwable</span>, message: <span class="type">Option</span>[<span class="type">Any</span>]): <span class="type">Unit</span> = &#123;</span><br><span class="line">  context.children foreach &#123; child ⇒</span><br><span class="line">    context.unwatch(child)</span><br><span class="line">    context.stop(child)</span><br><span class="line">  &#125;</span><br><span class="line">  postStop()</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">postRestart</span></span>(reason: <span class="type">Throwable</span>): <span class="type">Unit</span> = &#123;</span><br><span class="line">  preStart()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>用户代码可以通过<code>actor</code>提供的<code>context</code>属性来获取上下文信息，例如：</p>
+<ul>
+<li>acotor 所属的akka system: <code>context.system</code></li>
+<li>父 actor： <code>context.parent</code></li>
+<li>子 actors: <code>context.children</code></li>
+<li>创建子actor的工厂方法：<code>context.actorOf()</code></li>
+</ul>
+<h2 id="消息"><a class="markdownIt-Anchor" href="#消息"></a> 消息</h2>
+<p>在Akka中，actor之间传递的消息是强类型的，并且是不可变的(immutable)。</p>
+<p>通常我们不会把消息直接定义为<code>String</code>或<code>Int</code>类型，而是通过<code>case object</code>（如果消息类的构造函数不含参数） 或者 <code>case class</code>（如果消息类的构造函数包含参数）定义消息，并放在<code>companion object</code> 中。</p>
+<p>对于红包生成器的代码，我们在相应的<code>companion object</code>中定义消息<code>RedPacket</code>:</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">object</span> <span class="title">RedPacketGenerator</span> </span>&#123;</span><br><span class="line">  <span class="keyword">case</span> <span class="class"><span class="keyword">object</span> <span class="title">RedPacket</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="发送消息"><a class="markdownIt-Anchor" href="#发送消息"></a> 发送消息</h2>
+<h3 id="tell"><a class="markdownIt-Anchor" href="#tell"></a> Tell</h3>
+<p>最常用的消息发送方法是<code>tell</code>，遵循<code>fire and forget</code>的方式，<code>tell</code>保证最多只发送一次消息(<code>at most once</code>)，并不保证消息一定会被送达目的地。</p>
+<p>相对于其它的消息传输保证机制, 比如 <code>at least once</code>（如GFS中的写操作）或<code>exactly once</code>（如AMQP协议),<code>at most once</code>机制最为简单灵活，并且易于容错。Akka框架本身并不提供额外的消息送达保证，而是让客户代码自己基于业务逻辑去实现。</p>
+<p>tell 方法的定义为：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="function"><span class="keyword">def</span> <span class="title">tell</span></span>(msg: <span class="type">Any</span>, sender: <span class="type">ActorRef</span>): <span class="type">Unit</span> = <span class="keyword">this</span>.!(msg)(sender)</span><br></pre></td></tr></table></figure>
+<p>实际代码中，我们通常不会直接调用tell，而是用柯里化的方法<code>!</code>,其定义为：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">!</span></span>(msg: <span class="type">Any</span>)(<span class="keyword">implicit</span> sender: <span class="type">ActorRef</span> = <span class="type">Actor</span>.noSender) = tell(msg, sender)</span><br></pre></td></tr></table></figure>
+<p>每次我们调用<code>!</code>方法的时候，会有一个隐式的<code>sender</code>被传入,这个<code>ActorRef</code>类型的<code>sender</code>是什么呢？从Actor源码中我们看到，<code>sender</code>被定义为消息的发送者自身：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">implicit</span> <span class="keyword">val</span> self: <span class="type">ActorRef</span></span><br></pre></td></tr></table></figure>
+<p>回到红包程序，让我们的红包生成器发出一个红包：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RedPacketGenerator</span> <span class="keyword">extends</span> <span class="title">Actor</span> <span class="keyword">with</span> <span class="title">ActorLogging</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> </span>= &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> <span class="type">RedPacket</span> =&gt; </span><br><span class="line">      <span class="comment">// generate a random red packet, at most $100 !</span></span><br><span class="line">      <span class="keyword">val</span> amount = <span class="type">Random</span>.nextInt(<span class="number">100</span>)</span><br><span class="line">      log.info(<span class="string">&quot;Generate a new red packet!&quot;</span>)</span><br><span class="line">      sender ! <span class="type">UnopenedRedPacket</span>(amount)</span><br><span class="line"></span><br><span class="line">  &#125;	</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="ask"><a class="markdownIt-Anchor" href="#ask"></a> Ask</h3>
+<p>另外一种消息发送的方式是<code>ask</code>，不同于<code>tell</code>，<code>ask</code>遵循的是<code>send and expect</code>的形式，发送出一条消息之后，异步等待回复的消息。</p>
+<p>在用户代码中，通常我们以<code>?</code>的形式调用<code>ask</code>方法， <code>ask</code>返回一个<code>Future</code>。我们可以向<code>Future</code>对象注册自己的回调函调函数，待Future完成任务后调用这些函数。后续文章会对<code>Future</code>作详细解释。</p>
+<p>akka源码将<code>ask</code>方法定义为：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">?</span></span>(message: <span class="type">Any</span>)(<span class="keyword">implicit</span> timeout: <span class="type">Timeout</span>, sender: <span class="type">ActorRef</span> = <span class="type">Actor</span>.noSender): <span class="type">Future</span>[<span class="type">Any</span>] =</span><br><span class="line">  internalAsk(message, timeout, sender)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>这里有个隐式的<code>timeout</code>参数，如果在指定的时间内仍未完成消息的处理，则Actor会抛出超时错误。</p>
+<p>举个例子，在我们的红包程序中，客户端接收一种&quot;待拆开红包&quot; – 只有当用户点击&quot;打开红包&quot;之后，才显示具体数额：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RedPacketClient</span>(<span class="params">val generator: <span class="type">ActorRef</span></span>) <span class="keyword">extends</span> <span class="title">Actor</span> <span class="keyword">with</span> <span class="title">ActorLogging</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">implicit</span> <span class="keyword">val</span> askTimeout = <span class="type">Timeout</span>(<span class="number">1.</span>second)</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> </span>= &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// simulate the shake action in Mobile</span></span><br><span class="line">    <span class="keyword">case</span> <span class="type">Shake</span> =&gt;</span><br><span class="line">      (generator ? <span class="type">RedPacket</span>) onSuccess &#123;</span><br><span class="line">        <span class="keyword">case</span> <span class="type">UnopenedRedPacket</span>(amount) =&gt; self ! <span class="type">OpenPacket</span>(amount)</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="回复消息"><a class="markdownIt-Anchor" href="#回复消息"></a> 回复消息</h2>
+<p><code>actor</code>收到消息后，经常需要向发送者作出相应的回复，Akka会将消息及其发送者打包在一起发送到接收端，我们可以通过<code>sender</code>方法来获取消息的发送者，例如</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sender ! <span class="type">UnopenedRedPacket</span>(amount)</span><br></pre></td></tr></table></figure>
+<h2 id="小结"><a class="markdownIt-Anchor" href="#小结"></a> 小结</h2>
+<p>在这一篇，我们学习了<code>actor</code>的创建，消息的发送和回复，下一篇我们会学习<code>akka</code>中的测试框架。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2016/04/29/akka-2016-4-29-akka-in-scala-3/" data-id="cmlkuqb1z0004t6lh2dm54u90" data-title="Akka in Scala Part 3 - Actor" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/05/08/akka-2016-5-8-akka-in-scala-4/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Akka in Scala Part 4 - 测试
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/04/28/akka-2016-4-28-akka-in-scala-2/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Akka in Scala Part 2 - Akka 并发之道</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Hack on heaven&#39;s door">
+<meta property="og:type" content="website">
+<meta property="og:title" content="crackshell">
+<meta property="og:url" content="http://demonyangyue.github.io/page/2/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="Hack on heaven&#39;s door">
+<meta property="og:locale">
+<meta property="article:author" content="Yang, Yue">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-javascript-2016-8-17-jquery-source-analysis-5" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/08/17/javascript-2016-8-17-jquery-source-analysis-5/" class="article-date">
+  <time class="dt-published" datetime="2016-08-16T16:00:00.000Z" itemprop="datePublished">2016-08-17</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/08/17/javascript-2016-8-17-jquery-source-analysis-5/">jQuery 源码精粹5 -- event 与 effect</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>翻过<code>Defer</code>和<code>Promise</code>的大山，我们来到了本系列博客的最后一站，这一篇我们来研究<code>event.js</code>与<code>effect.js</code>。</p>
+        
+          <p class="article-more-link">
+            <a href="/2016/08/17/javascript-2016-8-17-jquery-source-analysis-5/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2016/08/17/javascript-2016-8-17-jquery-source-analysis-5/" data-id="cmlkuqb24001ft6lh96h83dhm" data-title="jQuery 源码精粹5 -- event 与 effect" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-javascript-2016-8-16-jquery-source-analysis-4" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/08/16/javascript-2016-8-16-jquery-source-analysis-4/" class="article-date">
+  <time class="dt-published" datetime="2016-08-15T16:00:00.000Z" itemprop="datePublished">2016-08-16</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/08/16/javascript-2016-8-16-jquery-source-analysis-4/">jQuery 源码精粹4 -- defer与promise</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>JavaScript采用回调函数来处理异步编程，但是用户经常会陷入一种被称作回调金字塔(<a href="https://en.wikipedia.org/wiki/Pyramid_of_doom_(programming)">Pyramid of Doom</a>)的困境，即在回调函数内部嵌套其它回调函数，层层嵌套使得代码清晰性急剧下降。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">asyncOperation</span>(<span class="keyword">function</span>(<span class="params">data</span>)&#123;</span><br><span class="line">  <span class="title function_">anotherAsync</span>(<span class="keyword">function</span>(<span class="params">data2</span>)&#123;</span><br><span class="line">      <span class="title function_">yetAnotherAsync</span>(<span class="keyword">function</span>(<span class="params"></span>)&#123;</span><br><span class="line">      &#125;);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>defer和promise是jQuery实现中，最难也最有趣的部分，它们以优雅的方式实现了JS世界中的异步回调。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">promiseSomething</span>()</span><br><span class="line">.<span class="title function_">then</span>(<span class="keyword">function</span>(<span class="params">data</span>)&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="title function_">anotherAsync</span>();</span><br><span class="line">&#125;)</span><br><span class="line">.<span class="title function_">then</span>(<span class="keyword">function</span>(<span class="params">data2</span>)&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="title function_">yetAnotherAsync</span>();</span><br><span class="line">&#125;)</span><br><span class="line">.<span class="title function_">then</span>(<span class="keyword">function</span>(<span class="params"></span>)&#123;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+        
+          <p class="article-more-link">
+            <a href="/2016/08/16/javascript-2016-8-16-jquery-source-analysis-4/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2016/08/16/javascript-2016-8-16-jquery-source-analysis-4/" data-id="cmlkuqb240018t6lhaqs4aen5" data-title="jQuery 源码精粹4 -- defer与promise" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-javascript-2016-8-15-jquery-source-analyssi-3" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/08/15/javascript-2016-8-15-jquery-source-analyssi-3/" class="article-date">
+  <time class="dt-published" datetime="2016-08-14T16:00:00.000Z" itemprop="datePublished">2016-08-15</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/08/15/javascript-2016-8-15-jquery-source-analyssi-3/">jQuery 源码精粹3 -- 节点处理</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>jQuery支持丰富的DOM节点操作：</p>
+<ul>
+<li>属性设置
+<ul>
+<li>attributes.js</li>
+<li>css.js</li>
+<li>data.js</li>
+</ul>
+</li>
+<li>插入或删除节点
+<ul>
+<li>manipulation.js</li>
+</ul>
+</li>
+<li>节点遍历
+<ul>
+<li>traversing.js</li>
+</ul>
+</li>
+</ul>
+<p>由于JavaScript已经对操作DOM节点提供了基础性支持，jQuery在实现这些功能的时候，主要是提供一层封装。仔细研读源码实现，仍可收获许多启发：</p>
+        
+          <p class="article-more-link">
+            <a href="/2016/08/15/javascript-2016-8-15-jquery-source-analyssi-3/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2016/08/15/javascript-2016-8-15-jquery-source-analyssi-3/" data-id="cmlkuqb24001ct6lh5ebncqv9" data-title="jQuery 源码精粹3 -- 节点处理" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-javascript-2016-8-11-jquery-source-analysis-2" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/08/11/javascript-2016-8-11-jquery-source-analysis-2/" class="article-date">
+  <time class="dt-published" datetime="2016-08-10T16:00:00.000Z" itemprop="datePublished">2016-08-11</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/08/11/javascript-2016-8-11-jquery-source-analysis-2/">jQuery 源码精粹2 -- 选择器</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>jQuery 主要解决两个问题：</p>
+<ul>
+<li>对DOM节点进行操作。</li>
+<li>发送Ajax请求并解析响应。</li>
+</ul>
+<p>操作DOM节点之前，首先需要选中节点，这一篇我们来研究和节点选择器相关的代码。</p>
+        
+          <p class="article-more-link">
+            <a href="/2016/08/11/javascript-2016-8-11-jquery-source-analysis-2/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2016/08/11/javascript-2016-8-11-jquery-source-analysis-2/" data-id="cmlkuqb240015t6lheops845x" data-title="jQuery 源码精粹2 -- 选择器" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-javascript-2016-8-10-jquery-source-analysis-1" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/08/10/javascript-2016-8-10-jquery-source-analysis-1/" class="article-date">
+  <time class="dt-published" datetime="2016-08-09T16:00:00.000Z" itemprop="datePublished">2016-08-10</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/08/10/javascript-2016-8-10-jquery-source-analysis-1/">jQuery 源码精粹1 -- 核心模块</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>核心模块<code>core.js</code>是<code>jquery.js</code>第一个包含的模块，浏览<code>jquery</code>源码文件，可以发现大部分文件都把它作为依赖。作为<code>jquery</code>最重要的模块，它到底做了哪些事情呢？</p>
+        
+          <p class="article-more-link">
+            <a href="/2016/08/10/javascript-2016-8-10-jquery-source-analysis-1/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2016/08/10/javascript-2016-8-10-jquery-source-analysis-1/" data-id="cmlkuqb230012t6lhf54ybxlo" data-title="jQuery 源码精粹1 -- 核心模块" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-javascript-2016-8-4-jquery-source-analysis-0" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/08/04/javascript-2016-8-4-jquery-source-analysis-0/" class="article-date">
+  <time class="dt-published" datetime="2016-08-03T16:00:00.000Z" itemprop="datePublished">2016-08-04</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/08/04/javascript-2016-8-4-jquery-source-analysis-0/">jQuery 源码精粹0 -- 引言</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="缘起"><a class="markdownIt-Anchor" href="#缘起"></a> 缘起</h2>
+<p>作为世界上被<a href="http://javascript.crockford.com/javascript.html">误解最深的编程语言</a>，JavaScript承载了很多并不公平的指责。</p>
+<p>相对于它一无是处的远房表兄Java，JavaScript至少在这三处设计得非常优雅：</p>
+<ul>
+<li>对象字面量表示法。（以及JSON）</li>
+<li>基于原型链的继承模型</li>
+<li>匿名函数块</li>
+</ul>
+<p>以我对JavaScript粗浅的理解，编写优秀的JavaScript程序，基本是把这三点用到极致，并且避免所有其余JS糟粕的过程。jQuery, 作为应用最广的JavaScript库，是一个很好的学习范例。</p>
+<p>本系列博客，旨在和你一起暂时远离html和css的泥沼，徜徉在jQuery源码的沙滩，寻找那些闪光的贝壳。</p>
+        
+          <p class="article-more-link">
+            <a href="/2016/08/04/javascript-2016-8-4-jquery-source-analysis-0/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2016/08/04/javascript-2016-8-4-jquery-source-analysis-0/" data-id="cmlkuqb25001it6lhcgrxfc3f" data-title="jQuery 源码精粹0 -- 引言" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-spark-2016-5-20-spark-1" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/05/20/spark-2016-5-20-spark-1/" class="article-date">
+  <time class="dt-published" datetime="2016-05-19T16:00:00.000Z" itemprop="datePublished">2016-05-20</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/05/20/spark-2016-5-20-spark-1/">spark 中的RDD 和 DAG</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="spark-核心"><a class="markdownIt-Anchor" href="#spark-核心"></a> Spark 核心</h2>
+<p>Spark是继Hadoop之后的下一代分布式大数据处理框架，相对于传统的批处理框架Hadoop，Spark通过可存储在内存中的数据集RDD，以及对流式（streaming）处理的支持，可以获得10到100倍的性能提升。相对于仅支持流式处理的Storm框架，Spark提供了对批处理，流处理，交互式查询，机器学习及图形计算等一系列任务的支持，一站式解决各类大数据分析需求。</p>
+<p>每个分布式框架需要解决分布式环境中天然的技术难题，比如并行效率，出错恢复和一致性等问题。分布式框架本身需要精巧的设计，但是对使用框架的用户来说，需要实现的客户端代码是比较简单直接的，无非是对数据集合的map, reduce, filter, group, join等一系列操作。</p>
+<p>然而要实现高效的Spark应用，需要用户对数据在物理节点上的存取，在网络间的传递，以及任务的执行流程有清晰的理解，RDD和DAG是需要掌握的两个核心概念。</p>
+        
+          <p class="article-more-link">
+            <a href="/2016/05/20/spark-2016-5-20-spark-1/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2016/05/20/spark-2016-5-20-spark-1/" data-id="cmlkuqb27002et6lh7q8v4spy" data-title="spark 中的RDD 和 DAG" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-akka-2016-5-10-akka-in-scala-6" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/05/10/akka-2016-5-10-akka-in-scala-6/" class="article-date">
+  <time class="dt-published" datetime="2016-05-09T16:00:00.000Z" itemprop="datePublished">2016-05-10</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/05/10/akka-2016-5-10-akka-in-scala-6/">Akka in Scala Part 6 - Router</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p><code>Akka</code>是一个自由的世界，<code>actor</code>之间可以互相发送任意类型的消息，但是随着<code>actor</code>数量的增多，如果不加限制地任由<code>actor</code>之间互相通信，很快整个系统将变得复杂且难以管理。</p>
+<p>在互联网的世界，将一群节点组成一个内网，不同网络间的通信，需要通过路由器作为中介。路由使消息传递变得有序。</p>
+<p><code>Akka</code>世界中，也有扮演路由器角色的<code>router</code>，通过<code>router</code>可以管理一组<code>routee</code>的创建、通信和销毁。</p>
+        
+          <p class="article-more-link">
+            <a href="/2016/05/10/akka-2016-5-10-akka-in-scala-6/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2016/05/10/akka-2016-5-10-akka-in-scala-6/" data-id="cmlkuqb1y0001t6lhf0po4drr" data-title="Akka in Scala Part 6 - Router" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-akka-2016-5-9-akka-in-scala-5" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/05/09/akka-2016-5-9-akka-in-scala-5/" class="article-date">
+  <time class="dt-published" datetime="2016-05-08T16:00:00.000Z" itemprop="datePublished">2016-05-09</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/05/09/akka-2016-5-9-akka-in-scala-5/">Akka in Scala Part 5 - 监护与错误恢复</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>在分布式系统中，由于集群规模庞大，系统环境复杂，出错是常态，容错是一个非常重要的内容。</p>
+<p>传统的异常处理，通常是捕获某种类型的异常并调用相应的异常处理函数，但是在分布式系统中，由于环境的复杂性，通常无法预料错误的类型并进行有效的处理，传统的异常处理方式并不适用。</p>
+<p><code>Akka</code>沿袭了<code>Erlang</code>的<code>let it crash</code>哲学，当<code>actor</code>内部发生异常时，并不试图捕捉异常并处理，而是重建一个新的<code>actor</code>, 使得整个系统在错误发生的时候可以自动恢复。</p>
+        
+          <p class="article-more-link">
+            <a href="/2016/05/09/akka-2016-5-9-akka-in-scala-5/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2016/05/09/akka-2016-5-9-akka-in-scala-5/" data-id="cmlkuqb210009t6lh6fyjem2h" data-title="Akka in Scala Part 5 - 监护与错误恢复" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-akka-2016-5-8-akka-in-scala-4" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/05/08/akka-2016-5-8-akka-in-scala-4/" class="article-date">
+  <time class="dt-published" datetime="2016-05-07T16:00:00.000Z" itemprop="datePublished">2016-05-08</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/05/08/akka-2016-5-8-akka-in-scala-4/">Akka in Scala Part 4 - 测试</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>按测试驱动开发(TDD, Test Driven Development)的理念，测试代码应先于产品代码被编写，这样不仅保证了产品代码的测试覆盖率，并且可以强制开发者在设计之初就考虑代码将如何被使用，如何才能易于测试。</p>
+<p>Akka基于<code>ScalaTest</code>框架，提供了<code>akka-testkit</code>模块来支持单元测试和集成测试的编写。</p>
+        
+          <p class="article-more-link">
+            <a href="/2016/05/08/akka-2016-5-8-akka-in-scala-4/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2016/05/08/akka-2016-5-8-akka-in-scala-4/" data-id="cmlkuqb200006t6lh65c347dt" data-title="Akka in Scala Part 4 - 测试" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+
+
+  <nav id="page-nav">
+    
+    <a class="extend prev" rel="prev" href="/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/3/">Next &raquo;</a>
+  </nav>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

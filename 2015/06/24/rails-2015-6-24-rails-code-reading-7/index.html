@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Rails源码管窥7 - autoload 机制 | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="引言 在开发大型web应用时，一个普遍的痛点是在每个源代码文件的开头，都需要一长串的import来引入所需的类，使得源代码变得冗长并且容易出错。 Rails通过ActiveSupport::Autoload模块，免去了手动加载类或者模块的烦恼。Rails的autoload机制主要提供给了两大功能：  自动加载类和模块的定义  当rails看到未定义的常量时，会根据名字猜测其所处的路径，然后加载其">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Rails源码管窥7 - autoload 机制">
+<meta property="og:url" content="http://demonyangyue.github.io/2015/06/24/rails-2015-6-24-rails-code-reading-7/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="引言 在开发大型web应用时，一个普遍的痛点是在每个源代码文件的开头，都需要一长串的import来引入所需的类，使得源代码变得冗长并且容易出错。 Rails通过ActiveSupport::Autoload模块，免去了手动加载类或者模块的烦恼。Rails的autoload机制主要提供给了两大功能：  自动加载类和模块的定义  当rails看到未定义的常量时，会根据名字猜测其所处的路径，然后加载其">
+<meta property="og:locale">
+<meta property="article:published_time" content="2015-06-23T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-20T06:28:07.587Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="Rails">
+<meta property="article:tag" content="Web">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-rails-2015-6-24-rails-code-reading-7" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/06/24/rails-2015-6-24-rails-code-reading-7/" class="article-date">
+  <time class="dt-published" datetime="2015-06-23T16:00:00.000Z" itemprop="datePublished">2015-06-24</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Rails源码管窥7 - autoload 机制
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>在开发大型web应用时，一个普遍的痛点是在每个源代码文件的开头，都需要一长串的import来引入所需的类，使得源代码变得冗长并且容易出错。<br />
+Rails通过<code>ActiveSupport::Autoload</code>模块，免去了手动加载类或者模块的烦恼。Rails的autoload机制主要提供给了两大功能：</p>
+<ul>
+<li>自动加载类和模块的定义</li>
+</ul>
+<p>当rails看到未定义的常量时，会根据名字猜测其所处的路径，然后加载其定义。这里又一次体现了rails <code>convention over configuration</code>哲学的强大力量。</p>
+<p>Rails采用缓式(lazy)加载的策略，在常量名首次出现时试图尝试其定义。缓式加载使得rails server在开发模式启动时，只需加载少量的类及模块定义，整个启动过程可在较短时间内完成。</p>
+<ul>
+<li>文件修改后自动重新加载</li>
+</ul>
+<p>当处于开发模式时，如果开发者修改了controller, model等目录下的源码文件，无需重启服务器，下一次请求rails会自动读取最新的定义，后面我们会一起探索这样的魔法是如何实现的。</p>
+<span id="more"></span>
+<h2 id="ruby中的autoload"><a class="markdownIt-Anchor" href="#ruby中的autoload"></a> ruby中的autoload</h2>
+<p>ruby本身通过<code>Kernel#autoload</code>方法，提供了常量自动加载机制，例如：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">autoload <span class="symbol">:Command</span>,            <span class="string">&#x27;thin/command&#x27;</span></span><br><span class="line">autoload <span class="symbol">:Connection</span>,         <span class="string">&#x27;thin/connection&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>当ruby第一次看到<code>Command</code>时，由于不知其定义，<code>Module#const_missing</code>方法被触发，进而根据autoload指定的路径<code>thin/command</code>加载定义。</p>
+<h2 id="rails中的autoload"><a class="markdownIt-Anchor" href="#rails中的autoload"></a> rails中的autoload</h2>
+<p>Rails扩展了ruby的autoload功能，用户可以不显式指定路径，rails通过会自动猜测路径，例如：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">module</span> <span class="title class_">ActiveSupport</span></span><br><span class="line">  <span class="keyword">extend</span> <span class="title class_">ActiveSupport::Autoload</span></span><br><span class="line"></span><br><span class="line">  autoload <span class="symbol">:Concern</span></span><br><span class="line">  autoload <span class="symbol">:Dependencies</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>那么rails是如何猜测路径的呢？原来，rails有一个<code>autoload_paths</code>的配置，来指定常量定义的搜索路径。启动一个rails console：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">2.2.1 :001 &gt; ActiveSupport::Dependencies.autoload_paths</span><br><span class="line"> =&gt; [<span class="string">&quot;.../app/assets&quot;</span>, </span><br><span class="line"> <span class="string">&quot;.../app/controllers&quot;</span>,</span><br><span class="line"> <span class="string">&quot;.../app/helpers&quot;</span>, </span><br><span class="line"> <span class="string">&quot;.../app/mailers&quot;</span>, </span><br><span class="line"> <span class="string">&quot;.../app/models&quot;</span>, </span><br><span class="line"> <span class="string">&quot;.../app/controllers/concerns&quot;</span>, </span><br><span class="line"> <span class="string">&quot;.../app/models/concerns&quot;</span>,</span><br><span class="line"> <span class="string">&quot;.../test/mailers/previews&quot;</span>] </span><br></pre></td></tr></table></figure>
+<p>可以看到autoload_paths所指定的一些列搜索路径。</p>
+<p>让我们深入到autoload的源代码中了解其定义：</p>
+<blockquote>
+<p>/usr/local/rvm/gems/ruby-2.2.1/gems/activesupport-4.2.1/lib/active_support/dependencies/autoload.rb</p>
+</blockquote>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">autoload</span>(<span class="params">const_name, path = <span class="variable">@_at_path</span></span>)</span><br><span class="line">  <span class="keyword">unless</span> path</span><br><span class="line">    full = [name, <span class="variable">@_under_path</span>, const_name.to_s].compact.join(<span class="string">&quot;::&quot;</span>)</span><br><span class="line">    path = <span class="title class_">Inflector</span>.underscore(full)</span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> <span class="variable">@_eager_autoload</span></span><br><span class="line">    <span class="variable">@_autoloads</span>[const_name] = path</span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">  <span class="variable language_">super</span> const_name, path</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>可以看到，rails中通过<code>path = Inflector.underscore(full)</code>来自动推断constant所处的路径，例如在查找<code>ApplicationController</code>的定义时，<br />
+首先检查<code>app/assets/application_controller.rb</code>是否存在，发现不存在后继续查找<code>app/controllers/application_controller.rb</code>文件，得到路径后，<br />
+通过<code>super const_name, path</code>来调用<code>Kernel#autoload</code>.</p>
+<h2 id="eager-load"><a class="markdownIt-Anchor" href="#eager-load"></a> Eager Load</h2>
+<p>Rails通过缓式加载，让常量在第一次使用时加载定义，可以在开发环境中加快Server的启动速度。但是在生产环境中，采用缓式加载的策略就会使处理用户请求的时间变长，造成性能下降。<br />
+rails在生产环境中采用即时加载（eager load）策略，在server启动时预先加载大部分类和模块的定义。</p>
+<p>Rails通过变量<code>config.cache_classes</code>来切换常量加载策略，当<code>config.cache_classes</code>为true时，调用<code>Kernel#require</code>来加载，这是生产模式默认的配置，当<code>config.cache_classes</code>为false时，调用<code>Kernel#load</code>来加载，这是开发模式默认的配置。<code>Kernel#load</code>允许rails多次加载同一文件。</p>
+<p>当运行在开发模式时，如果想eager load某个模块，该如何做呢？别担心，<code>ActiveSupport::Autoload</code>为我们提供了<code>eager_autoload</code>方法：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">module</span> <span class="title class_">ActiveSupport</span></span><br><span class="line">  <span class="keyword">extend</span> <span class="title class_">ActiveSupport::Autoload</span></span><br><span class="line"></span><br><span class="line">  eager_autoload <span class="keyword">do</span></span><br><span class="line">    autoload <span class="symbol">:BacktraceCleaner</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<h2 id="reload"><a class="markdownIt-Anchor" href="#reload"></a> Reload</h2>
+<p>当在开发环境中运行rails程序时，如果相关的代码发生了改动，rails会自动重新加载代码的定义。Rails会监控以下文件的变动：</p>
+<ul>
+<li>
+<p>config/routes.rb.</p>
+</li>
+<li>
+<p>Locales.</p>
+</li>
+<li>
+<p>autoload_paths 下的文件.</p>
+</li>
+<li>
+<p>db/schema.rb 和 db/structure.sql.</p>
+</li>
+</ul>
+<p>当其中的任何文件发生改变时， rails将会调用<code>Module#remove_const</code>方法，移除所有自动加载的常量，并重新加载这些常量的定义。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2015/06/24/rails-2015-6-24-rails-code-reading-7/" data-id="cmlkuqb260024t6lh38h9bg0q" data-title="Rails源码管窥7 - autoload 机制" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/09/16/mesos-2015-9-16-mesos-sharing/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Mesos 札记
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/06/17/rails-2015-6-17-rails-code-reading-6/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Rails源码管窥6 - 数据验证</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

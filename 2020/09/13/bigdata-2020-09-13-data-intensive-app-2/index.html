@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>设计数据密集型应用 —— 数据模型与查询语言 | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="引言 在数据密集型应用设计中，数据模型处于核心地位，描述了数据以怎样的方式被组织在一起，对应用的设计方案有着深远影响。 大部分应用程序都是分层的，每一层提供一套数据模型抽象，屏蔽下一层的复杂细节，围绕这一层抽象，各层之间的开发人员能够高效地沟通合作。 现实中存在着各种各样的数据模型，每一种模型都包含了对其使用场景的假设，在某些场景，该数据模型使用简单且运行高效，但是在某些场景，该数据模型配置复杂">
+<meta property="og:type" content="article">
+<meta property="og:title" content="设计数据密集型应用 —— 数据模型与查询语言">
+<meta property="og:url" content="http://demonyangyue.github.io/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="引言 在数据密集型应用设计中，数据模型处于核心地位，描述了数据以怎样的方式被组织在一起，对应用的设计方案有着深远影响。 大部分应用程序都是分层的，每一层提供一套数据模型抽象，屏蔽下一层的复杂细节，围绕这一层抽象，各层之间的开发人员能够高效地沟通合作。 现实中存在着各种各样的数据模型，每一种模型都包含了对其使用场景的假设，在某些场景，该数据模型使用简单且运行高效，但是在某些场景，该数据模型配置复杂">
+<meta property="og:locale">
+<meta property="og:image" content="http://demonyangyue.github.io/images/data_intensive_app/graph_data.jpg">
+<meta property="article:published_time" content="2020-09-12T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-20T06:28:07.584Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="Cloud Computing">
+<meta property="article:tag" content="Big Data">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://demonyangyue.github.io/images/data_intensive_app/graph_data.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-bigdata-2020-09-13-data-intensive-app-2" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/" class="article-date">
+  <time class="dt-published" datetime="2020-09-12T16:00:00.000Z" itemprop="datePublished">2020-09-13</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      设计数据密集型应用 —— 数据模型与查询语言
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>在数据密集型应用设计中，数据模型处于核心地位，描述了数据以怎样的方式被组织在一起，对应用的设计方案有着深远影响。</p>
+<p>大部分应用程序都是<strong>分层</strong>的，每一层提供一套数据模型抽象，屏蔽下一层的复杂细节，围绕这一层抽象，各层之间的开发人员能够高效地沟通合作。</p>
+<p>现实中存在着各种各样的数据模型，每一种模型都包含了对其使用场景的<strong>假设</strong>，在某些场景，该数据模型使用简单且运行高效，但是在某些场景，该数据模型配置复杂甚至无法支持。深入理解数据模型使用场景的相关假设，对于应用程序的技术选型和最终实现至关重要。</p>
+<p>本章主要描述各种通用的数据模型以及相应的数据查询语言。</p>
+<span id="more"></span>
+<h2 id="关系型数据模型"><a class="markdownIt-Anchor" href="#关系型数据模型"></a> 关系型数据模型</h2>
+<p>大家最熟悉的数据模型，要数关系型数据模型(relational model)，对应的查询语言SQL，数据应用开发人员几乎每天都要使用。</p>
+<p>在关系型数据模型中，数据以关系的形式被组织起来(relation,对应的是数据库中的表)， 每一种关系，包含了一组元组的集合(tuple, 对应的是数据表中的行)。</p>
+<p>关系型数据模型，存储在关系型数据库中，通过SQL进行查询和更新。今天的互联网应用，比如搜索引擎、社交网络、电子商务网站等，关系型数据库是在背后支撑其运行的核心组件。</p>
+<h3 id="声明式查询语言"><a class="markdownIt-Anchor" href="#声明式查询语言"></a> 声明式查询语言</h3>
+<p>关系型数据模型的一个重要贡献，就是引入了数据查询语言SQL。</p>
+<p>历史上，关系型数据模型的那些已经失败的竞争对手，比如网络模型(network model)和层级模型(hierarchical)，采用的是命令式(imperative)查询语言来获取数据。</p>
+<p>举个例子，如果要从一组动物数据局中查出所有的鲨鱼信息，命令式语言的伪代码:</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">getSharks</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">var</span> sharks = [];</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; animals.<span class="property">length</span>; i++) &#123;</span><br><span class="line">    <span class="keyword">if</span> (animals[i].<span class="property">family</span> === <span class="string">&quot;Sharks&quot;</span>) &#123;</span><br><span class="line">      sharks.<span class="title function_">push</span>(animals[i]);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> sharks;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>命令式查询的限制在于，程序必须明确地告诉数据系统具体的执行步骤，以便系统能够一步步执行完成任务。这就要求程序员了解数据库系统的实现细节和约定，造成了程序和数据库系统的紧耦合。</p>
+<p>而对于关系型数据库来说，使用的SQL是一种声明式(declarative)语言，以鲨鱼信息查询为例，SQL写成:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> animals <span class="keyword">WHERE</span> family <span class="operator">=</span> <span class="string">&#x27;Sharks&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p>程序只需要声明想获取的数据，而由数据库系统自己决定改如何获取信息，查询引擎可以基于不同的SQL，进行解析优化、索引优化，大大提高了查询的速度。</p>
+<h3 id="结构失配"><a class="markdownIt-Anchor" href="#结构失配"></a> 结构失配</h3>
+<p>结构失配是关系型数据模型主要缺陷之一。</p>
+<p>今天大部分应用是以面向对象的模式设计的，一个对象中可以包含各种类型的数据:字符串、数组、字典、其它对象等等，对象通常是以树形结构在内存中存储的。</p>
+<p>但是在关系型数据库中，数据是按行列模式存储的，是一个二维结构。于是内存中的数据和数据库中的数据，就存在着一个结构上的失配(mismatch):应用程序在向数据库中存储对象之前，往往要写一层翻译的代码，将树形结构转化为二维结构。</p>
+<p>虽然通过使用ORM框架(比如ActiveRecord、Hibernate)，可以减少这部分翻译工作所需的代码量，但是结构失配的问题仍然存在。</p>
+<h2 id="文档型数据模型"><a class="markdownIt-Anchor" href="#文档型数据模型"></a> 文档型数据模型</h2>
+<p>针对关系型数据库中存在的缺陷，2010年之后，出现了NoSQL的风潮。NoSQL是一个容易引起误解的名词，它不是指非SQL，而是指<strong>不仅仅是SQL</strong>(Not Only SQL)，NoSQL蓬勃发展的背后驱动力包括:</p>
+<ul>
+<li>传统关系数数据库通常难以扩展。在云计算大数据时代，需要使用更易扩展的方案，来处理海量数据的存取。</li>
+<li>传统关系型数据库本身存在着诸多限制，比如处理某些特定的查询类型时性能不好，关系模型不够灵活等等。</li>
+</ul>
+<p>文档型数据模型，典型的实现如MongoDB，以文档的形式存储数据，不再受行列二维结构的约束，克服了传统关系型模型的限制。在正确使用的场景，可以获得以下优势:</p>
+<h3 id="更简单的代码"><a class="markdownIt-Anchor" href="#更简单的代码"></a> 更简单的代码</h3>
+<p>如果应用中的对象都是树形结构，那么使用文档数据模型，没有结构失配的问题，对应的代码更加简单。</p>
+<p>传统的文档数据模型支持数据间join操作比较困难，这在实际应用场景中可能是一个问题。</p>
+<h3 id="更灵活的存储结构"><a class="markdownIt-Anchor" href="#更灵活的存储结构"></a> 更灵活的存储结构</h3>
+<p>和关系型数据模型不同，文档数据模型通常对数据存储结构没有强制约束。</p>
+<p>文档型数据库经常被称作是无结构(schemaless)的，实际上不太准确，应用程序在读取数据的时候，隐含着数据结构的假设，所以更准确的说法是<strong>读时结构约束</strong>(schema-on-read)，对应的关系型数据库，则是在写入数据时需要遵循显式的结构定义，称作<strong>写时结构约束</strong>(schme-on-read)。这两种约束之间，有点像动态编程语言(运行时类型检查)和静态编程语言(编译时类型检查)的区别。</p>
+<h3 id="良好的查询性能"><a class="markdownIt-Anchor" href="#良好的查询性能"></a> 良好的查询性能</h3>
+<p>在文档数据模型，数据通常是以文档的粒度被读取的，整个文档被一次性全部加载到内存中，后续对文档内容的查询可以全部在内存中完成，所以具有良好的查询性能。</p>
+<h3 id="互相借鉴"><a class="markdownIt-Anchor" href="#互相借鉴"></a> 互相借鉴</h3>
+<p>关系型数据模型和文档型数据模型，彼此之间并非泾渭分明，它们在各自发展的过程中也在互相借鉴。</p>
+<p>现代的关系型数据库，比如MySQL在5.7版本之后，也支持json格式的字段类型，增加了结构的灵活度。对于MongoDB来说，也支持简单join操作，突破传统的文档型数据库在数据关联方面的限制。</p>
+<h2 id="图数据模型"><a class="markdownIt-Anchor" href="#图数据模型"></a> 图数据模型</h2>
+<p>如果我们的场景中，主要存在的是一对多关系，即数据间是树形结构，那么使用文档数据模型是合适的，但是如果存在着大量的多对多关系，即数据间是图结构，那么文档模型就不能够很好描述这些关系了，此时更适合采用<strong>图数据模型</strong>。</p>
+<p>图数据结构，由顶点(vertices)和边(edges)组成，很多场景的数据可以用图来描述，比如:</p>
+<ul>
+<li>社交网络。顶点代表用户，边代表用户互相认识。</li>
+<li>web页面。顶点代表网页，边代表跳转到其它网页的链接。</li>
+<li>地图。顶点代表地点，边代表道路。</li>
+</ul>
+<p>用一个场景作为示例:一对夫妻Lucy和Alain，Lucy来自Idaho,Alain来自Beaune，现在他们住在London。</p>
+<p><img src="/images/data_intensive_app/graph_data.jpg" alt="" /></p>
+<p>针对这个场景，我们可以用属性图(Property Graphs)来描述数据之间的多对多关系。</p>
+<h3 id="属性图"><a class="markdownIt-Anchor" href="#属性图"></a> 属性图</h3>
+<p>属性图的每个点包含:</p>
+<ul>
+<li>一个唯一id</li>
+<li>一组出边(outgoing edges)的集合</li>
+<li>一组入边(incoming edges)的集合</li>
+<li>一组属性的集合</li>
+</ul>
+<p>每条边包含:</p>
+<ul>
+<li>一个唯一id</li>
+<li>边的起点</li>
+<li>边的终点</li>
+<li>描述关系类型的标签</li>
+<li>一组属性的集合</li>
+</ul>
+<p>为了便于理解，可以想象成由两张关系型数据表来存储图模型，一张表存储节点信息，一张表存储边信息:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> vertices (</span><br><span class="line">    vertex_id integerPRIMARYKEY, </span><br><span class="line">    properties json</span><br><span class="line">);</span><br><span class="line"><span class="keyword">CREATE TABLE</span> edges (</span><br><span class="line">    edge_id <span class="type">integer</span> <span class="keyword">PRIMARY KEY</span>,</span><br><span class="line">    tail_vertex <span class="type">integer</span> <span class="keyword">REFERENCES</span> vertices (vertex_id),</span><br><span class="line">    head_vertex <span class="type">integer</span> <span class="keyword">REFERENCES</span> vertices (vertex_id), </span><br><span class="line">    label text,</span><br><span class="line">    properties json</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p>需要注意的是：</p>
+<ul>
+<li>每个节点可以通过一条边连接到另外一个节点，没有任何的存储结构限制。</li>
+<li>对于任何一个节点，可以很容易的查出它的所有入边(incoming edges)和出边(outgoing edges)，也就是说可以很容易地遍历整个图。</li>
+<li>通过使用不同的标签(label)，可在一张图里面，存储各种不同类型的信息。</li>
+</ul>
+<h2 id="总结"><a class="markdownIt-Anchor" href="#总结"></a> 总结</h2>
+<p>不同的场景有不同的需求，没有一个放之四海而皆准的解决方案，彼之蜜糖也许是吾之砒霜。</p>
+<p>在可以预见的未来，关系型数据模型仍将处于主导地位，并且和文档数据模型、图数据模型等多种非关系型数据模型并存。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/" data-id="cmlkuqb22000gt6lha59p7ugq" data-title="设计数据密集型应用 —— 数据模型与查询语言" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2026/02/12/computing-2026-2-12-computing-sharing/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          《计算读书笔记》
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">设计数据密集型应用1 —— 序</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

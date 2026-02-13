@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Mesos 札记 | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="引言 基于云平台的应用如雨后春笋般涌出，任务处理应用如Hadoop，Spark，Storm，服务调度应用Marathon, Aurora, Chronos, 数据库Redis, Cassandra, Mongodb, 搜索引擎ElasticSearch, 消息系统kafka。面对如此纷繁的应用，需要一个操作系统，在应用之间分配集群资源，在此背景之下，云世界的操作系统——mesos， 应运而生。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mesos 札记">
+<meta property="og:url" content="http://demonyangyue.github.io/2015/09/16/mesos-2015-9-16-mesos-sharing/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="引言 基于云平台的应用如雨后春笋般涌出，任务处理应用如Hadoop，Spark，Storm，服务调度应用Marathon, Aurora, Chronos, 数据库Redis, Cassandra, Mongodb, 搜索引擎ElasticSearch, 消息系统kafka。面对如此纷繁的应用，需要一个操作系统，在应用之间分配集群资源，在此背景之下，云世界的操作系统——mesos， 应运而生。">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/demonyangyue/demonyangyue.github.io/master/images/mesos_1.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/demonyangyue/demonyangyue.github.io/master/images/mesos_2.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/demonyangyue/demonyangyue.github.io/master/images/mesos_3.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/demonyangyue/demonyangyue.github.io/master/images/mesos_4.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/demonyangyue/demonyangyue.github.io/master/images/mesos_5.png">
+<meta property="article:published_time" content="2015-09-15T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-20T06:28:07.586Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="Cloud Computing">
+<meta property="article:tag" content="Mesos">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/demonyangyue/demonyangyue.github.io/master/images/mesos_1.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-mesos-2015-9-16-mesos-sharing" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/09/16/mesos-2015-9-16-mesos-sharing/" class="article-date">
+  <time class="dt-published" datetime="2015-09-15T16:00:00.000Z" itemprop="datePublished">2015-09-16</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Mesos 札记
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>基于云平台的应用如雨后春笋般涌出，任务处理应用如Hadoop，Spark，Storm，服务调度应用Marathon, Aurora, Chronos, 数据库Redis, Cassandra, Mongodb, 搜索引擎ElasticSearch, 消息系统kafka。面对如此纷繁的应用，需要一个操作系统，在应用之间分配集群资源，在此背景之下，云世界的操作系统——mesos， 应运而生。</p>
+<p>本文是Mesos的学习笔记，主要基于<a href="http://mesos.berkeley.edu/mesos_tech_report.pdf">Mesos white paper</a>, 和<a href="http://cloudarchitectmusings.com/2015/03/23/apache-mesos-the-true-os-for-the-software-defined-data-center/">Mesos系列博客</a>。</p>
+<span id="more"></span>
+<h2 id="设计"><a class="markdownIt-Anchor" href="#设计"></a> 设计</h2>
+<h3 id="挑战"><a class="markdownIt-Anchor" href="#挑战"></a> 挑战</h3>
+<p>Mesos在设计时的主要挑战如何适配任务和资源，原因在于：</p>
+<ol>
+<li>解决方案必须支持当下和未来的框架</li>
+<li>解决方案必须具有高扩展性，现代集群通常会有上万个节点，同时跑数百万个任务。</li>
+<li>资源调度系统必须具有高可用性和高容错性</li>
+</ol>
+<h3 id="决策"><a class="markdownIt-Anchor" href="#决策"></a> 决策</h3>
+<p>Mesos没有使用传统的集中式调度方案(YARN)，因为传统方案有以下缺陷：</p>
+<ol>
+<li>复杂性，需要满足各种框架的资源使用需求</li>
+<li>许多框架自身已经实现了资源调度策略，将这些算法融合到Mesos将付出巨大的重构成本</li>
+</ol>
+<p>Mesos采用了不同的策略，将调度控制委托给框架, 基于“resource offer”的形式，由Mesos决定向每个框架提供多少资源，框架自己来决定接受哪些资源，并基于这些资源进行任务调度，这样的设计有以下好处：</p>
+<ol>
+<li>让框架近乎完美地达到调度目标(如数据本地性)</li>
+<li>简单并且易于实现</li>
+<li>可以运行一个框架的不同版本</li>
+<li>可以让框架更加专注于特定领域的问题</li>
+</ol>
+<h3 id="优势"><a class="markdownIt-Anchor" href="#优势"></a> 优势</h3>
+<p>通过在不同框架之间分享集群资源，不仅提高了资源利用率，也提高了数据利用率，并且让上层的框架不需要重复地实现与分布式基础架构交互的细节，从而能够专注于解决特定领域的问题。</p>
+<p>下图为基于传统的静态划分和基于Mesos的弹性分享之间的资源利用率对比：</p>
+<p><img src="https://raw.githubusercontent.com/demonyangyue/demonyangyue.github.io/master/images/mesos_1.jpg" alt="" /></p>
+<h2 id="架构"><a class="markdownIt-Anchor" href="#架构"></a> 架构</h2>
+<p>Mesos 架构如图：</p>
+<p><img src="https://raw.githubusercontent.com/demonyangyue/demonyangyue.github.io/master/images/mesos_2.jpg" alt="" /></p>
+<p>Mesos 由一个master进程和一组slave进程组成。</p>
+<ul>
+<li>
+<p>Master负责为不同的框架提供资源，并且管理task的生命周期。</p>
+</li>
+<li>
+<p>Slave负责启动框架定义的executor并执行相应的任务。</p>
+</li>
+<li>
+<p>运行在mesos之上的框架（也称为应用）包含两个组件：</p>
+<ul>
+<li>负责资源调度的调度器(scheduler）</li>
+<li>负责任务执行的执行器(executor),  每一个executor可以通过多线程的方式运行多个task，也可以只运行单个任务。</li>
+</ul>
+</li>
+</ul>
+<h2 id="实现"><a class="markdownIt-Anchor" href="#实现"></a> 实现</h2>
+<p>Mesos由10000行C<ins>代码实现(最新的v0.24共计176545行C</ins>代码，master.cpp 和 slave.cpp 合计约10000行)，可以在Linux, Solaris 和 Mac OSX 上运行，通过SWIG支持Python 和 Java API.</p>
+<p>使用c++库libprocess实现基于actor模式的异步I/O 机制(epoll, kqueue之类), 已经在twitter, facebook的实际生产环境中使用.</p>
+<h3 id="资源调度"><a class="markdownIt-Anchor" href="#资源调度"></a> 资源调度</h3>
+<p>Master基于&quot;resource offer&quot;实现了细粒度的资源调度方式，下图是一个&quot;resource offer&quot;示例：</p>
+<p><img src="https://raw.githubusercontent.com/demonyangyue/demonyangyue.github.io/master/images/mesos_3.jpg" alt="" /></p>
+<ol>
+<li>slave1 向master报告，它拥有4cpu 和4GB内存的空闲资源</li>
+<li>master向framework1发送一份“resource offer”， 描述当前所有的空闲资源</li>
+<li>framework 的调度器回复需要运行两个task， task1 需要&lt;2CPU, 1GM RAM&gt;,  task2 需要&lt;1CPU, 2GM RAM&gt;</li>
+<li>master 把task发送给slave，slave为执行器分配资源，执行器启动这两个任务。</li>
+<li>由于仍有1CPU 和 1GB RAM剩余，master可以把它们提供给framework2.</li>
+</ol>
+<p>在和框架进行通信时，Mesos Master以JSON格式发送&quot;resource offer&quot;, 例如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;id&quot; : &lt;offer_id&gt;,</span><br><span class="line">  &quot;framework_id&quot; : &lt;framework_id&gt;,</span><br><span class="line">  &quot;slave_id&quot; : &lt;slave_id&gt;,</span><br><span class="line">  &quot;hostname&quot; : &lt;hostname&gt;,</span><br><span class="line">  &quot;resources&quot; : [</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot; : &quot;cpus&quot;,</span><br><span class="line">      &quot;type&quot; : &quot;SCALAR&quot;,</span><br><span class="line">      &quot;scalar&quot; : &#123; &quot;value&quot; : 32 &#125;,</span><br><span class="line">      &quot;role&quot; : &quot;*&quot;,</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot; : &quot;mem&quot;,</span><br><span class="line">      &quot;type&quot; : &quot;SCALAR&quot;,</span><br><span class="line">      &quot;scalar&quot; : &#123; &quot;value&quot; : 65536 &#125;,</span><br><span class="line">      &quot;role&quot; : &quot;*&quot;,</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="资源分配算法"><a class="markdownIt-Anchor" href="#资源分配算法"></a> 资源分配算法</h3>
+<p>resource offer 的决策由master的资源配置(resource allocation)模块作出, 保证在多个框架之间分享资源的公平性。</p>
+<h4 id="max-min"><a class="markdownIt-Anchor" href="#max-min"></a> Max-min</h4>
+<p>在一个同质化的环境中（如仅运行Hadoop的集群），最著名的分配算法是max-min算法，该算法通过在users之间均分最紧缺资源的方式，保证集群中最紧缺的资源得到最大化利用。</p>
+<h4 id="dfs"><a class="markdownIt-Anchor" href="#dfs"></a> DFS</h4>
+<p>但是在一个异质化环境中，不同的框架拥有不同类型的紧缺资源， max-min算法将不再适用。 比如框架A每个task需要1CPU, 4RAM,框架B需要3CPU, 1RAM, 如何给这两个框架分配资源才算公平呢？</p>
+<p>Mesos使用了DFS(Dominant Resource Fairness)算法, 目标是实现<strong>支配性资源</strong>的公平分配。</p>
+<p>支配性资源，是指框架在运行时的瓶颈资源，比如一个计算密集型的框架，CPU就是其支配性资源。</p>
+<p>看一个具体的例子，假设集群中现有的资源为9CPU 和 18GB RAM, 框架A每个task需要1 CPU, 4 GB RAM， 框架B每个task需要3 CPUs, 1 GB RAM。对于框架A来说，每个task需要总资源的1/9CPU和2/9RAM，其支配性资源是RAM，对于框架B来说，每个task需要总资源的1/3  CPU和1/18 RAM，其支配性资源是CPU。</p>
+<p>DRF作出的最终资源分配决策为：为框架A分配3个task的资源 (3 CPUs, 12 GB RAM)， 为框架B分配两个task的资源 (6 CPUs, 2 GB RAM).  最终两个框架支配性资源的份额相同(均为67%), 并且集群中不再有额外资源分配给更多的task。</p>
+<p><img src="https://raw.githubusercontent.com/demonyangyue/demonyangyue.github.io/master/images/mesos_4.png" alt="" /></p>
+<p>除了默认的DRF算法外，Mesos也提供了基于严格优先级(strict priority)的资源分配算法, 具有高优先级的框架会被优先提供资源， 以保证集群中重要的框架总能够拥有所需资源。</p>
+<p>一个潜在的问题是，mesos如何能满足框架对资源的特殊要求呢?比如某个框架有数据本地性的需求(data locality)，但是Mesos本身并不知道哪个节点存储着框架需要的数据。</p>
+<p>为了解决这个问题，Mesos给框架提供了&quot;reject offer&quot;的能力：框架可以拒绝那些不满足其特殊需求的&quot;resource offer&quot;,而只接受那些能够满足需求的&quot;resource offer&quot;。</p>
+<h3 id="资源预留"><a class="markdownIt-Anchor" href="#资源预留"></a> 资源预留</h3>
+<p>一些重要的服务，不希望在重启的过程中被回收资源，Mesos提供了资源保留（resource reservation）的机制, 框架在接受resource offer的时候，可以告诉Mesos Master 希望保留的资源。</p>
+<h3 id="资源隔离"><a class="markdownIt-Anchor" href="#资源隔离"></a> 资源隔离</h3>
+<p>资源隔离：利用操作系统提供的隔离机制进行资源隔离，比传统的基于进程来隔离任务优越得多。</p>
+<p>Mesos提供了三种类型的资源隔离：</p>
+<ul>
+<li>Mesos containerizer. 基于Linux cgroups 实现。</li>
+<li>Docker containerizer. 底层基于cgroup, LXC, OpenVZ 以及Kernel namespaces 实现。</li>
+<li>External containerizer, 由用户自定义实现。</li>
+</ul>
+<h3 id="容错"><a class="markdownIt-Anchor" href="#容错"></a> 容错</h3>
+<h4 id="master"><a class="markdownIt-Anchor" href="#master"></a> Master</h4>
+<p>由于所以的框架都依赖master，所以master容错非常重要，mesos采用了两种技术：</p>
+<ol>
+<li>master本身被设计成轻状态(soft state)， master可以根据slave及框架调度器周期性传来的信息，完整地重建先前的内部状态。</li>
+<li>master不是单个节点，而是一个集群，由Zookeeper来实现领导者选举，决定哪个节点作为当前master。其它的节点作为备份，在当前master挂掉之后，参与新一轮的master 选举。</li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/demonyangyue/demonyangyue.github.io/master/images/mesos_5.png" alt="" /></p>
+<h4 id="框架调度器framework-schedulers"><a class="markdownIt-Anchor" href="#框架调度器framework-schedulers"></a> 框架调度器(Framework Schedulers)</h4>
+<p>框架可以向mesos master注册两个或多个调度器，来实现调度器的容错。</p>
+<h4 id="slave"><a class="markdownIt-Anchor" href="#slave"></a> Slave</h4>
+<p>Slave 进程在执行的过程中，周期性地为任务相关的元数据生成还原点(checkpooint), 并存储到本地磁盘。如果slave挂掉，master会重启slave进程，并且根据还原点数据重建先前状态。</p>
+<p>在slave挂掉的这段时间，task可以不受影响地继续执行，slave 进程被重启后可以重新连接到executors/tasks.</p>
+<h2 id="总结"><a class="markdownIt-Anchor" href="#总结"></a> 总结</h2>
+<p>Mesos遵循了UNIX设计哲学，专注于提供核心功能–资源分配，而将其它功能诸如任务调度代理给上层应用完成。</p>
+<p>Mesos最重要的两点设计：</p>
+<ol>
+<li>实现了task级别的细粒度资源共享模型。</li>
+<li>实现了称作&quot;resource offer&quot;的分布式资源调度模型，由Mesos提供集群资源，框架来选择使用哪些资源运行任务。</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2015/09/16/mesos-2015-9-16-mesos-sharing/" data-id="cmlkuqb23000zt6lheyvyfcc5" data-title="Mesos 札记" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/04/08/akka-2016-4-8-akka-in-scala-1/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Akka in Scala Part 1 - Java dosen&#39;t work
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/06/24/rails-2015-6-24-rails-code-reading-7/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Rails源码管窥7 - autoload 机制</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Rails源码管窥6 - 数据验证 | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="引言 在web开发的过程中，经常需要对数据的有效性进行验证，以保证数据符合我们的需求。 数据验证可以在以下几处完成：   在前端通过JavaScript进行验证。Javascript最初被创造的目的就是为了对表单进行数据验证，使用JS验证的优点是简单，响应迅速，缺点在于无法对涉及后端逻辑的数据进行验证。   在Model层进行验证。当数据验证需要在后端完成时，这是推荐的做法。   在Contro">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Rails源码管窥6 - 数据验证">
+<meta property="og:url" content="http://demonyangyue.github.io/2015/06/17/rails-2015-6-17-rails-code-reading-6/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="引言 在web开发的过程中，经常需要对数据的有效性进行验证，以保证数据符合我们的需求。 数据验证可以在以下几处完成：   在前端通过JavaScript进行验证。Javascript最初被创造的目的就是为了对表单进行数据验证，使用JS验证的优点是简单，响应迅速，缺点在于无法对涉及后端逻辑的数据进行验证。   在Model层进行验证。当数据验证需要在后端完成时，这是推荐的做法。   在Contro">
+<meta property="og:locale">
+<meta property="article:published_time" content="2015-06-16T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-20T06:28:07.587Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="Rails">
+<meta property="article:tag" content="Web">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-rails-2015-6-17-rails-code-reading-6" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/06/17/rails-2015-6-17-rails-code-reading-6/" class="article-date">
+  <time class="dt-published" datetime="2015-06-16T16:00:00.000Z" itemprop="datePublished">2015-06-17</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Rails源码管窥6 - 数据验证
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>在web开发的过程中，经常需要对数据的有效性进行验证，以保证数据符合我们的需求。</p>
+<p>数据验证可以在以下几处完成：</p>
+<ol>
+<li>
+<p>在前端通过JavaScript进行验证。Javascript最初被创造的目的就是为了对表单进行数据验证，使用JS验证的优点是简单，响应迅速，缺点在于无法对涉及后端逻辑的数据进行验证。</p>
+</li>
+<li>
+<p>在Model层进行验证。当数据验证需要在后端完成时，这是推荐的做法。</p>
+</li>
+<li>
+<p>在Controller层进行验证。这种做法的主要缺点在于会使controller的代码膨胀，并且增加与model层的耦合度，不利于代码的阅读和维护。</p>
+</li>
+<li>
+<p>在数据库层面进行验证。数据库也提供了constraints功能来对保证数据的正确性，但是缺点主要在于提供的验证方式有限，并且直到数据最终存储到数据库前，才能发现错误。</p>
+</li>
+</ol>
+<p>Rails通过ActiveModel模块提供了一系列预定义的类来辅助验证，用户也可以根据自己的需求来自定义验证逻辑。</p>
+<span id="more"></span>
+<h2 id="activemodel-数据验证"><a class="markdownIt-Anchor" href="#activemodel-数据验证"></a> ActiveModel 数据验证</h2>
+<p>看一个简单的例子，假设我们需要定义一个<code>Person</code>类型，要求其实例必须具有<code>:name</code>字段：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Person</span></span><br><span class="line">  <span class="keyword">include</span> <span class="title class_">ActiveModel::Validations</span></span><br><span class="line"></span><br><span class="line">  validates <span class="symbol">:name</span>, <span class="symbol">presence:</span> <span class="literal">true</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">attr_accessor</span> <span class="symbol">:name</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>于是我们可以创建Person类型的实例并验证其有效性：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">2.0.0-p353 :002 &gt; person = Person.new</span><br><span class="line"> =&gt; <span class="comment">#&lt;Person:0xb3c2a98&gt; </span></span><br><span class="line">2.0.0-p353 :003 &gt; person.name = <span class="string">&#x27;yy&#x27;</span></span><br><span class="line"> =&gt; <span class="string">&quot;yy&quot;</span> </span><br><span class="line">2.0.0-p353 :004 &gt; person.valid?</span><br><span class="line"> =&gt; <span class="literal">true</span> </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>那么<code>validates :name, presence: true</code>在背后是怎样定义验证逻辑的呢？让我们来一探究竟吧：</p>
+<p>当调用<code>validates()</code>方法时，通过传入的参数解析出对应的validator，并进一步调用<code>validates_with()</code>方法：</p>
+<blockquote>
+<p>/usr/local/rvm/gems/ruby-2.2.1/gems/activemodel-4.2.1/lib/active_model/validations/validates.rb</p>
+</blockquote>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">      </span><br><span class="line">      <span class="keyword">def</span> <span class="title function_">validates</span>(<span class="params">*attributes</span>)</span><br><span class="line">        defaults = attributes.extract_options!.dup</span><br><span class="line">        validations = defaults.slice!(*_validates_default_keys)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">raise</span> <span class="title class_">ArgumentError</span>, <span class="string">&quot;You need to supply at least one attribute&quot;</span> <span class="keyword">if</span> attributes.empty?</span><br><span class="line">        <span class="keyword">raise</span> <span class="title class_">ArgumentError</span>, <span class="string">&quot;You need to supply at least one validation&quot;</span> <span class="keyword">if</span> validations.empty?</span><br><span class="line"></span><br><span class="line">        defaults[<span class="symbol">:attributes</span>] = attributes</span><br><span class="line"></span><br><span class="line">        validations.each <span class="keyword">do</span> |<span class="params">key, options</span>|</span><br><span class="line">          <span class="keyword">next</span> <span class="keyword">unless</span> options</span><br><span class="line">          key = <span class="string">&quot;<span class="subst">#&#123;key.to_s.camelize&#125;</span>Validator&quot;</span></span><br><span class="line"></span><br><span class="line">          <span class="keyword">begin</span></span><br><span class="line">            validator = key.<span class="keyword">include</span>?(<span class="string">&#x27;::&#x27;</span>) ? key.constantize : const_get(key)</span><br><span class="line">          <span class="keyword">rescue</span> <span class="title class_">NameError</span></span><br><span class="line">            <span class="keyword">raise</span> <span class="title class_">ArgumentError</span>, <span class="string">&quot;Unknown validator: &#x27;<span class="subst">#&#123;key&#125;</span>&#x27;&quot;</span></span><br><span class="line">          <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">=&gt;        validates_with(validator, defaults.merge(_parse_validates_options(options)))</span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">      </span><br></pre></td></tr></table></figure>
+<p><code>validates_with()</code>方法创建相应的<code>validator</code>实例并调用<code>validate()</code>方法：</p>
+<blockquote>
+<p>/usr/local/rvm/gems/ruby-2.2.1/gems/activemodel-4.2.1/lib/active_model/validations/with.rb</p>
+</blockquote>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">      <span class="keyword">def</span> <span class="title function_">validates_with</span>(<span class="params">*args, &amp;block</span>)</span><br><span class="line">        options = args.extract_options!</span><br><span class="line">        options[<span class="symbol">:class</span>] = <span class="variable language_">self</span></span><br><span class="line"></span><br><span class="line">        args.each <span class="keyword">do</span> |<span class="params">klass</span>|</span><br><span class="line">          validator = klass.new(options, &amp;block)</span><br><span class="line"></span><br><span class="line">          <span class="keyword">if</span> validator.respond_to?(<span class="symbol">:attributes</span>) &amp;&amp; !validator.attributes.empty?</span><br><span class="line">            validator.attributes.each <span class="keyword">do</span> |<span class="params">attribute</span>|</span><br><span class="line">              _validators[attribute.to_sym] &lt;&lt; validator</span><br><span class="line">            <span class="keyword">end</span></span><br><span class="line">          <span class="keyword">else</span></span><br><span class="line">            _validators[<span class="literal">nil</span>] &lt;&lt; validator</span><br><span class="line">          <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">=&gt;        validate(validator, options)</span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">      <span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p><code>validate()</code>对传入的参数进行检验，并注册<code>Validator::validate()</code>作为回调函数：</p>
+<blockquote>
+<p>/usr/local/rvm/gems/ruby-2.2.1/gems/activemodel-4.2.1/lib/active_model/validations.rb</p>
+</blockquote>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">      <span class="keyword">def</span> <span class="title function_">validate</span>(<span class="params">*args, &amp;block</span>)</span><br><span class="line">        options = args.extract_options!</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> args.all? &#123; |<span class="params">arg</span>| arg.is_a?(<span class="title class_">Symbol</span>) &#125;</span><br><span class="line">          options.each_key <span class="keyword">do</span> |<span class="params">k</span>|</span><br><span class="line">            <span class="keyword">unless</span> <span class="variable constant_">VALID_OPTIONS_FOR_VALIDATE</span>.<span class="keyword">include</span>?(k)</span><br><span class="line">              <span class="keyword">raise</span> <span class="title class_">ArgumentError</span>.new(<span class="string">&quot;Unknown key: <span class="subst">#&#123;k.inspect&#125;</span>. Valid keys are: <span class="subst">#&#123;<span class="variable constant_">VALID_OPTIONS_FOR_VALIDATE</span>.map(&amp;<span class="symbol">:inspect</span>).join(<span class="string">&#x27;, &#x27;</span>)&#125;</span>. Perhaps you meant to call `validates` instead of `validate`?&quot;</span>)</span><br><span class="line">            <span class="keyword">end</span></span><br><span class="line">          <span class="keyword">end</span></span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> options.key?(<span class="symbol">:on</span>)</span><br><span class="line">          options = options.dup</span><br><span class="line">          options[<span class="symbol">:if</span>] = <span class="title class_">Array</span>(options[<span class="symbol">:if</span>])</span><br><span class="line">          options[<span class="symbol">:if</span>].unshift -&gt;(o) &#123;</span><br><span class="line">            <span class="title class_">Array</span>(options[<span class="symbol">:on</span>]).<span class="keyword">include</span>?(o.validation_context)</span><br><span class="line">          &#125;</span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">        args &lt;&lt; options</span><br><span class="line">=&gt;      set_callback(<span class="symbol">:validate</span>, *args, &amp;block)</span><br></pre></td></tr></table></figure>
+<p>当调用类似<code>person.valid?</code>这样的方法时，<code>Validator：：validate()</code>函数会被触发, 调用<code>validate_each()</code>方法：</p>
+<blockquote>
+<p>/usr/local/rvm/gems/ruby-2.2.1/gems/activemodel-4.2.1/lib/active_model/validator.rb</p>
+</blockquote>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">        <span class="comment"># Performs validation on the supplied record. By default this will call</span></span><br><span class="line">        <span class="comment"># +validates_each+ to determine validity therefore subclasses should</span></span><br><span class="line">        <span class="comment"># override +validates_each+ with validation logic.</span></span><br><span class="line">        <span class="keyword">def</span> <span class="title function_">validate</span>(<span class="params">record</span>)</span><br><span class="line">          attributes.each <span class="keyword">do</span> |<span class="params">attribute</span>|</span><br><span class="line">            value = record.read_attribute_for_validation(attribute)</span><br><span class="line">            <span class="keyword">next</span> <span class="keyword">if</span> (value.<span class="literal">nil</span>? &amp;&amp; options[<span class="symbol">:allow_nil</span>]) |<span class="params"></span>| (value.blank? &amp;&amp; options[<span class="symbol">:allow_blank</span>])</span><br><span class="line">=&gt;          validate_each(record, attribute, value)</span><br><span class="line">          <span class="keyword">end</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>每个validator都实现了自己的<code>validate_each()</code>方法，接受<code>record, attr_name, value</code>三个参数，执行数据校验：</p>
+<blockquote>
+<p>/usr/local/rvm/gems/ruby-2.2.1/gems/activemodel-4.2.1/lib/active_model/validations/presence.rb</p>
+</blockquote>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">    <span class="number">2</span>: <span class="keyword">module</span> <span class="title class_">ActiveModel</span></span><br><span class="line">    <span class="number">3</span>: </span><br><span class="line">    <span class="number">4</span>:   <span class="keyword">module</span> <span class="title class_">Validations</span></span><br><span class="line">    <span class="number">5</span>:     <span class="keyword">class</span> <span class="title class_">PresenceValidator</span> &lt; <span class="title class_ inherited__">EachValidator</span> <span class="comment"># :nodoc:</span></span><br><span class="line">    <span class="number">6</span>:       <span class="keyword">def</span> <span class="title function_">validate_each</span>(<span class="params">record, attr_name, value</span>)</span><br><span class="line">=&gt;  <span class="number">7</span>:         record.errors.add(attr_name, <span class="symbol">:blank</span>, options) if value.blank?</span><br><span class="line">    <span class="number">8</span>:       end</span><br><span class="line">    <span class="number">9</span>:     <span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<h2 id="自定义验证类"><a class="markdownIt-Anchor" href="#自定义验证类"></a> 自定义验证类：</h2>
+<p><code>ActiveModel::Validations</code>模块提供了多种预定义的<code>Validator</code>,例如<code>PresenceValidator</code>,<code>InclusionValidator</code>,<code>NumericalityValidator</code>，如果我们想自定义<code>Validator</code>,只需依葫芦画瓢，继承<code>EachValidator</code>并且实现对应<code>validate_each()</code>方法即可：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">TitleValidator</span> &lt; <span class="title class_ inherited__">ActiveModel::EachValidator</span></span><br><span class="line">  <span class="keyword">def</span> <span class="title function_">validate_each</span>(<span class="params">record, attribute, value</span>)</span><br><span class="line">    record.errors.add attribute, <span class="string">&#x27;must be Mr., Mrs., or Dr.&#x27;</span> <span class="keyword">unless</span> <span class="string">%w(Mr. Mrs. Dr.)</span>.<span class="keyword">include</span>?(value)</span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>关于数据验证我们就研究到这里，下一节我们将探索Rails中的autoload机制。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2015/06/17/rails-2015-6-17-rails-code-reading-6/" data-id="cmlkuqb260021t6lhdx7f2vwi" data-title="Rails源码管窥6 - 数据验证" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/06/24/rails-2015-6-24-rails-code-reading-7/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Rails源码管窥7 - autoload 机制
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/06/16/rails-2015-6-16-rails-code-reading-5/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Rails源码管窥5 - 添加属性方法</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

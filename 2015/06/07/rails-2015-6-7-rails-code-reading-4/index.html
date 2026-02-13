@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Rails源码管窥4 - 模板缓存 | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="引言 通过上一节的研究，我们理解了Rails模板查找机制。 但复杂的查找逻辑也意味着昂贵的时间开销，那么如何提高模板查找的效率呢？聪明的你一定已经想到了——缓存查找结果。 我们该如何实现rails的模板缓存系统呢？ 最简单的办法是使用一个hash ,但是查找结果由name, prefix, partial, details这些参数共同决定， 那么hash key该如设计呢？ 让我们一起到Rail">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Rails源码管窥4 - 模板缓存">
+<meta property="og:url" content="http://demonyangyue.github.io/2015/06/07/rails-2015-6-7-rails-code-reading-4/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="引言 通过上一节的研究，我们理解了Rails模板查找机制。 但复杂的查找逻辑也意味着昂贵的时间开销，那么如何提高模板查找的效率呢？聪明的你一定已经想到了——缓存查找结果。 我们该如何实现rails的模板缓存系统呢？ 最简单的办法是使用一个hash ,但是查找结果由name, prefix, partial, details这些参数共同决定， 那么hash key该如设计呢？ 让我们一起到Rail">
+<meta property="og:locale">
+<meta property="article:published_time" content="2015-06-06T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-20T06:28:07.587Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="Rails">
+<meta property="article:tag" content="Web">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-rails-2015-6-7-rails-code-reading-4" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/06/07/rails-2015-6-7-rails-code-reading-4/" class="article-date">
+  <time class="dt-published" datetime="2015-06-06T16:00:00.000Z" itemprop="datePublished">2015-06-07</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Rails源码管窥4 - 模板缓存
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>通过上一节的研究，我们理解了Rails模板查找机制。<br />
+但复杂的查找逻辑也意味着昂贵的时间开销，那么如何提高模板查找的效率呢？聪明的你一定已经想到了——缓存查找结果。</p>
+<p>我们该如何实现rails的模板缓存系统呢？<br />
+最简单的办法是使用一个hash ,但是查找结果由<code>name, prefix, partial, details</code>这些参数共同决定， 那么hash key该如设计呢？</p>
+<p>让我们一起到Rails源码中寻找答案吧。</p>
+<span id="more"></span>
+<h2 id="rails-模板缓存机制"><a class="markdownIt-Anchor" href="#rails-模板缓存机制"></a> Rails 模板缓存机制</h2>
+<p>上一节中我们提到了ActionView::Resolver类中<code>find_all()</code>方法的定义：</p>
+<blockquote>
+<p>/usr/local/rvm/gems/ruby-2.2.1/gems/actionview-4.2.1/lib/action_view/template/resolver.rb</p>
+</blockquote>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">find_all</span>(<span class="params">name, prefix=<span class="literal">nil</span>, partial=<span class="literal">false</span>, details=&#123;&#125;, key=<span class="literal">nil</span>, locals=[]</span>)</span><br><span class="line">  cached(key, [name, prefix, partial], details, locals) <span class="keyword">do</span></span><br><span class="line">    find_templates(name, prefix, partial, details)</span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>其中<code>cached()</code>方法查找template的缓存，如果找到则直接返回template，否则执行<code>find_templates()</code>方法。</p>
+<p>我们首先想知道，传进来的<code>key</code>参数是如何计算的，我们可以在<code>ActionView::LookupContext::DetailsKey</code>中找到相关定义，代码等价于：</p>
+<blockquote>
+<p>/usr/local/rvm/gems/ruby-2.2.1/gems/actionview-4.2.1/lib/action_view/lookup_context.rb</p>
+</blockquote>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">key = <span class="variable">@details_key</span>[details] |<span class="params"></span>| = <span class="title class_">Object</span>.new</span><br></pre></td></tr></table></figure>
+<p>可以看到，<code>DetailsKey</code>中使用一个简单的<code>Object</code>实例，作为<code>key</code>变量的值。为什么不直接用<code>details</code>作为<code>key</code>变量的值呢？其中的奥秘在于 —— <strong>性能</strong>。</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/ruby</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">require</span> <span class="string">&#x27;benchmark&#x27;</span></span><br><span class="line"></span><br><span class="line">key_1 = <span class="title class_">Object</span>.new</span><br><span class="line">key_2 = &#123;</span><br><span class="line">    <span class="symbol">formats:</span> [<span class="symbol">:html</span>],</span><br><span class="line">    <span class="symbol">locale:</span> [<span class="symbol">:en</span>, <span class="symbol">:en</span>],</span><br><span class="line">    <span class="symbol">handler:</span> [<span class="symbol">:erb</span>, <span class="symbol">:builder</span>, <span class="symbol">:rjs</span>]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">hash_1 = &#123;key_1 =&gt; <span class="literal">true</span>&#125;</span><br><span class="line">hash_2 = &#123;key_2 =&gt; <span class="literal">true</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="title class_">Benchmark</span>.realtime&#123; <span class="number">1000</span>.times &#123;hash_1[key_1]&#125;&#125; <span class="comment"># =&gt; 0.001037</span></span><br><span class="line"><span class="title class_">Benchmark</span>.realtime&#123; <span class="number">1000</span>.times &#123;hash_2[key_2]&#125;&#125; <span class="comment"># =&gt; 0.011679</span></span><br></pre></td></tr></table></figure>
+<p>使用简单的<code>Object</code>实例作为<code>key</code>变量的值，性能提高了10倍。</p>
+<p>下面来看<code>cached()</code>方法的定义：</p>
+<blockquote>
+<p>/usr/local/rvm/gems/ruby-2.2.1/gems/actionview-4.2.1/lib/action_view/template/resolver.rb</p>
+</blockquote>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment"># Handles templates caching. If a key is given and caching is on</span></span><br><span class="line"><span class="comment"># always check the cache before hitting the resolver. Otherwise,</span></span><br><span class="line"><span class="comment"># it always hits the resolver but if the key is present, check if the</span></span><br><span class="line"><span class="comment"># resolver is fresher before returning it.</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">cached</span>(<span class="params">key, path_info, details, locals</span>) <span class="comment">#:nodoc:</span></span><br><span class="line">  name, prefix, partial = path_info</span><br><span class="line">  locals = locals.map &#123; |<span class="params">x</span>| x.to_s &#125;.sort!</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> key</span><br><span class="line">    <span class="variable">@cache</span>.cache(key, name, prefix, partial, locals) <span class="keyword">do</span></span><br><span class="line">      decorate(<span class="keyword">yield</span>, path_info, details, locals)</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    decorate(<span class="keyword">yield</span>, path_info, details, locals)</span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>其中<code>decorate()</code>方法，为先前<code>find_templates</code>方法中返回的templates设置相应的属性。我们重点关注<code>@cache.cache()</code>方法：</p>
+<blockquote>
+<p>/usr/local/rvm/gems/ruby-2.2.1/gems/actionview-4.2.1/lib/action_view/template/resolver.rb</p>
+</blockquote>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment"># Cache the templates returned by the block</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">cache</span>(<span class="params">key, name, prefix, partial, locals</span>)</span><br><span class="line">  <span class="keyword">if</span> <span class="title class_">Resolver</span>.caching?</span><br><span class="line">    <span class="variable">@data</span>[key][name][prefix][partial][locals] |<span class="params"></span>|= canonical_no_templates(<span class="keyword">yield</span>)</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    fresh_templates  = <span class="keyword">yield</span></span><br><span class="line">    cached_templates = <span class="variable">@data</span>[key][name][prefix][partial][locals]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> templates_have_changed?(cached_templates, fresh_templates)</span><br><span class="line">      <span class="variable">@data</span>[key][name][prefix][partial][locals] = canonical_no_templates(fresh_templates)</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">      cached_templates |<span class="params"></span>| <span class="variable constant_">NO_TEMPLATES</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>如果<code>Resolver.caching?</code>为true，则直接将templates缓存，否则，将找到templates和已缓存的作对比，如有变化则更新缓存。</p>
+<p>这里有趣的地方是，我们发现最终缓存template使用的key是<code>[key][name][prefix][partial][locals]</code>,为什么不直接用数组<code>[key, name, prefix, partial, locals]</code>呢？ 奥秘依然在于性能：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/ruby</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">require</span> <span class="string">&#x27;benchmark&#x27;</span></span><br><span class="line"></span><br><span class="line">key= <span class="title class_">Object</span>.new</span><br><span class="line">name = <span class="string">&quot;index&quot;</span></span><br><span class="line">prefix = [<span class="string">&quot;home&quot;</span>, <span class="string">&quot;application&quot;</span>]</span><br><span class="line">partial = <span class="string">&quot;&quot;</span></span><br><span class="line">locals = [<span class="symbol">:en</span>, <span class="symbol">:en</span>]</span><br><span class="line"></span><br><span class="line">hash_1  = <span class="title class_">Hash</span>.new </span><br><span class="line">hash_2 = &#123; [key, name, prefix, partial, locals] =&gt; <span class="literal">true</span> &#125;</span><br><span class="line"></span><br><span class="line">puts <span class="title class_">Benchmark</span>.realtime&#123; <span class="number">1000</span>.times <span class="keyword">do</span> </span><br><span class="line">    hash_1.fetch(<span class="string">&#x27;key&#x27;</span>, &#123;&#125;).fetch(<span class="string">&#x27;name&#x27;</span>, &#123;&#125;).fetch(<span class="string">&#x27;prefix&#x27;</span>, &#123;&#125;).fetch(<span class="string">&#x27;partial&#x27;</span>, &#123;&#125;).fetch(<span class="string">&#x27;locals&#x27;</span>, <span class="literal">true</span>)</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line">&#125; <span class="comment"># =&gt; 0.00256</span></span><br><span class="line">puts <span class="title class_">Benchmark</span>.realtime&#123; <span class="number">1000</span>.times <span class="keyword">do</span> </span><br><span class="line">    hash_2[[key, name, prefix, partial, locals]]</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line">&#125; <span class="comment"># =&gt; 0.01112</span></span><br></pre></td></tr></table></figure>
+<p>可以看到，用多个简单的对象作为键，比用一个大的数组作为键要高效得多。</p>
+<h2 id="结束语"><a class="markdownIt-Anchor" href="#结束语"></a> 结束语</h2>
+<p>关于Rails模板缓存，一个值得探索的领域是在分布式系统中，如何对缓存进行管理，未来会结合memcached之类的分布式内存管理框架进一步研究。让我们暂且放下模板缓存，开始下一段探索之旅吧。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2015/06/07/rails-2015-6-7-rails-code-reading-4/" data-id="cmlkuqb270028t6lh8bnuhct3" data-title="Rails源码管窥4 - 模板缓存" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/06/16/rails-2015-6-16-rails-code-reading-5/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Rails源码管窥5 - 添加属性方法
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/06/01/rails-2015-6-1-rails-code-reading-3/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Rails源码管窥3 - 模板查找</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Ruby元编程系列3 – 作用域 | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="代码块和闭包 代码块是Ruby语法的一大特色，可以通过两种方式来定义代码块：  将代码块定义在大括号中，通常只有一行代码的块使用这种方式。 将代码定义在do…end 中，通常具有多行代码的块使用这种方式。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ruby元编程系列3 – 作用域">
+<meta property="og:url" content="http://demonyangyue.github.io/2015/04/23/ruby-2015-4-23-ruby-meta-programming-3/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="代码块和闭包 代码块是Ruby语法的一大特色，可以通过两种方式来定义代码块：  将代码块定义在大括号中，通常只有一行代码的块使用这种方式。 将代码定义在do…end 中，通常具有多行代码的块使用这种方式。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2015-04-22T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-20T06:28:07.587Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="Ruby">
+<meta property="article:tag" content="Meta Programming">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-ruby-2015-4-23-ruby-meta-programming-3" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/04/23/ruby-2015-4-23-ruby-meta-programming-3/" class="article-date">
+  <time class="dt-published" datetime="2015-04-22T16:00:00.000Z" itemprop="datePublished">2015-04-23</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Ruby元编程系列3 – 作用域
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="代码块和闭包"><a class="markdownIt-Anchor" href="#代码块和闭包"></a> 代码块和闭包</h2>
+<p>代码块是Ruby语法的一大特色，可以通过两种方式来定义代码块：</p>
+<ul>
+<li>将代码块定义在大括号中，通常只有一行代码的块使用这种方式。</li>
+<li>将代码定义在do…end 中，通常具有多行代码的块使用这种方式。</li>
+</ul>
+<span id="more"></span>
+<p>定义接受代码块的函数也有两种方式：</p>
+<ul>
+<li>通过yield关键字</li>
+<li>给函数的最后一个参数加上&amp;前缀，来接受代码块</li>
+</ul>
+<p>分别看对应的例子：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/ruby</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">code_block_sample_1</span></span><br><span class="line">    puts <span class="string">&quot;hello &quot;</span> + <span class="keyword">yield</span> <span class="keyword">if</span> block_given?</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">code_block_sample_1 &#123;<span class="string">&quot;world&quot;</span>&#125; <span class="comment"># =&gt; &quot;hello world&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">code_block_sample_2</span>(<span class="params">&amp;block</span>)</span><br><span class="line">    puts <span class="string">&quot;hello &quot;</span> + block.call <span class="keyword">if</span> block </span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">code_block_sample_2 &#123;<span class="string">&quot;yue&quot;</span>&#125; <span class="comment"># =&gt; &quot;hello yue&quot;</span></span><br></pre></td></tr></table></figure>
+<p>关于闭包，以下是维基的定义：Operationally, a closure is a data structure storing a function together with an environment. 具体到Ruby中，就是指代码块与其运行环境的绑定。</p>
+<p>一个简单的示例：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/ruby</span></span><br><span class="line"></span><br><span class="line">name = <span class="string">&quot;yue&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="number">3</span>.times &#123;puts name&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看出由于闭包的存在，代码块可以获取到局部变量name.</p>
+<h2 id="作用域"><a class="markdownIt-Anchor" href="#作用域"></a> 作用域</h2>
+<p>在Java和C#中，有内部作用域(inner scope)的概念，内部作用域可以看到外部作用域中的变量。但是Ruby中没有这种嵌套式的作用域，它的作用域之间是泾渭分明的。</p>
+<p>Ruby作用域有三重门——有三个地方会打开新的作用域：</p>
+<ul>
+<li>类定义</li>
+<li>模块定义</li>
+<li>方法定义</li>
+</ul>
+<p>但是很多时候，你在定义类、模块、方法的时候，希望仍然能够访问之前局部作用域中的变量，不希望创建新的作用域。我们可以使用一种被称作“扁平作用域”(Flat Scope)的方式来穿越作用域门。</p>
+<p>代码示例：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/ruby</span></span><br><span class="line"></span><br><span class="line">name = <span class="string">&quot;yue&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="title class_">MyClass</span> = <span class="title class_">Class</span>.new <span class="keyword">do</span> </span><br><span class="line">    <span class="built_in">define_method</span> <span class="symbol">:my_method</span> <span class="keyword">do</span></span><br><span class="line">       puts name </span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="title class_">MyClass</span>.new.my_method <span class="comment"># =&gt; &quot;yue&quot;</span></span><br></pre></td></tr></table></figure>
+<p>可以看到，通过调用Class.new和define_method, name变量穿越了类定义和方法定义这两重作用域门。</p>
+<h2 id="class_eval与instance_eval"><a class="markdownIt-Anchor" href="#class_eval与instance_eval"></a> class_eval()与instance_eval()</h2>
+<p>class_eval() 与instance_eval()是Ruby元编程中常见的两种方法调用，在调用的过程中都用到了扁平作用域的技术。</p>
+<p>class_eval()的接受者只能是类，可以将类名当作变量传递，相当于增加了一层间接性。</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/ruby</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Sample</span>_1</span><br><span class="line">    </span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Sample</span>_2</span><br><span class="line">    </span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">add_method_to_class</span>(<span class="params">cls</span>)</span><br><span class="line">    cls.class_eval  <span class="keyword">do</span> </span><br><span class="line">        <span class="keyword">def</span> <span class="title function_">greet</span></span><br><span class="line">           puts <span class="string">&quot;hello&quot;</span> </span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">add_method_to_class(<span class="title class_">Sample</span>_1)</span><br><span class="line">add_method_to_class(<span class="title class_">Sample</span>_2)</span><br><span class="line"></span><br><span class="line"><span class="title class_">Sample</span>_1.new.greet</span><br><span class="line"><span class="title class_">Sample</span>_2.new.greet</span><br></pre></td></tr></table></figure>
+<p>instance_eval()的调用则略显微妙。</p>
+<p>当以一个类作为调用者时，是把这个类当作一个instance, 于是当前对象(receiver)仍然是这个类，但是当前类变成这个类的类——Class 类。此时若在代码块中定义实例方法，效果相当于在定义该类的类方法（具体细节会在下一篇讲singleton class 时详细解释）。</p>
+<p>代码示例：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Nerd</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="title class_">Nerd</span>.instance_eval <span class="keyword">do</span> </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">greet</span></span><br><span class="line">        puts <span class="string">&quot;hello&quot;</span> </span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="title class_">Nerd</span>.greet <span class="comment"># =&gt; &quot;hello&quot;</span></span><br></pre></td></tr></table></figure>
+<p>当以一个实例来调用instance_eval()时，和通常的调用实例方法没太大不同，最重要的区别是instance_eval()可以打破封装，可以访问到对象的私有变量。这种技术被称为“上下文探针”，在单元测试的时候非常有用。</p>
+<p>代码示例：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/ruby</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Nerd</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">initialize</span></span><br><span class="line">        <span class="variable">@name</span> = <span class="string">&quot;yue&quot;</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="title class_">Nerd</span>.new.instance_eval <span class="keyword">do</span> </span><br><span class="line">   puts <span class="variable">@name</span> <span class="comment"># =&gt; &quot;yue&quot;</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>关于作用域的知识我们就介绍到这里，下一篇会介绍单件方法和模块。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2015/04/23/ruby-2015-4-23-ruby-meta-programming-3/" data-id="cmlkuqb28002ot6lheczjd12b" data-title="Ruby元编程系列3 – 作用域" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/04/24/ruby-2015-4-24-ruby-meta-programming-4/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Ruby元编程系列4 – 单件方法和模块
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/04/22/ruby-2015-4-22-ruby-meta-programming-2/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Ruby元编程系列2 – 方法</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Akka in Scala Part 5 - 监护与错误恢复 | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="引言 在分布式系统中，由于集群规模庞大，系统环境复杂，出错是常态，容错是一个非常重要的内容。 传统的异常处理，通常是捕获某种类型的异常并调用相应的异常处理函数，但是在分布式系统中，由于环境的复杂性，通常无法预料错误的类型并进行有效的处理，传统的异常处理方式并不适用。 Akka沿袭了Erlang的let it crash哲学，当actor内部发生异常时，并不试图捕捉异常并处理，而是重建一个新的ac">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Akka in Scala Part 5 - 监护与错误恢复">
+<meta property="og:url" content="http://demonyangyue.github.io/2016/05/09/akka-2016-5-9-akka-in-scala-5/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="引言 在分布式系统中，由于集群规模庞大，系统环境复杂，出错是常态，容错是一个非常重要的内容。 传统的异常处理，通常是捕获某种类型的异常并调用相应的异常处理函数，但是在分布式系统中，由于环境的复杂性，通常无法预料错误的类型并进行有效的处理，传统的异常处理方式并不适用。 Akka沿袭了Erlang的let it crash哲学，当actor内部发生异常时，并不试图捕捉异常并处理，而是重建一个新的ac">
+<meta property="og:locale">
+<meta property="og:image" content="http://demonyangyue.github.io/images/error-kernel-pattern.png">
+<meta property="article:published_time" content="2016-05-08T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-20T06:28:07.584Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="Akka">
+<meta property="article:tag" content="Scala">
+<meta property="article:tag" content="Cloud Computing">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://demonyangyue.github.io/images/error-kernel-pattern.png">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-akka-2016-5-9-akka-in-scala-5" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/05/09/akka-2016-5-9-akka-in-scala-5/" class="article-date">
+  <time class="dt-published" datetime="2016-05-08T16:00:00.000Z" itemprop="datePublished">2016-05-09</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Akka in Scala Part 5 - 监护与错误恢复
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>在分布式系统中，由于集群规模庞大，系统环境复杂，出错是常态，容错是一个非常重要的内容。</p>
+<p>传统的异常处理，通常是捕获某种类型的异常并调用相应的异常处理函数，但是在分布式系统中，由于环境的复杂性，通常无法预料错误的类型并进行有效的处理，传统的异常处理方式并不适用。</p>
+<p><code>Akka</code>沿袭了<code>Erlang</code>的<code>let it crash</code>哲学，当<code>actor</code>内部发生异常时，并不试图捕捉异常并处理，而是重建一个新的<code>actor</code>, 使得整个系统在错误发生的时候可以自动恢复。</p>
+<span id="more"></span>
+<h2 id="监护策略"><a class="markdownIt-Anchor" href="#监护策略"></a> 监护策略</h2>
+<p>在<code>Akka</code>中，在子<code>actor</code>被创建后，父<code>actor</code>就成为了子<code>actor</code>的监护这，在子<code>actor</code>出错时负责处理， 有一对一和一对多两种策略：</p>
+<ul>
+<li>OneForOneStrategy
+<ul>
+<li>只诛首恶，余者不问。只有出错的<code>actor</code>会被处理。<code>Akka</code>默认采用这种机制。</li>
+</ul>
+</li>
+<li>OneForAllStrategy
+<ul>
+<li>城门失火，殃及池鱼。当出错时，不仅出错的<code>actor</code>,其兄弟<code>actor</code>也采用同样的策略一并处理。</li>
+</ul>
+</li>
+</ul>
+<h2 id="恢复策略"><a class="markdownIt-Anchor" href="#恢复策略"></a> 恢复策略</h2>
+<p><code>actor</code>出错时具体采用何种策略呢？共有四种：</p>
+<ul>
+<li>Stop - 停止出错的<code>actor</code>,不再让它处理任何消息。</li>
+<li>Restart - 这是默认策略，杀死旧的<code>actor</code>,重新创建一个新的<code>actor</code>。</li>
+<li>Resume - 忽略本次错误，恢复<code>actor</code>对消息的处理。</li>
+<li>Escalate - 交给父<code>actor</code>来决定处理策略。</li>
+</ul>
+<h2 id="代码示例"><a class="markdownIt-Anchor" href="#代码示例"></a> 代码示例</h2>
+<p>回到我们的红包程序，这里设计了一个采用<code>Resume</code>策略的监护者，对于比较重要、不能重启的<code>actor</code>, 通常可以采用<code>resume</code>策略进行错误恢复。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Define a customized supervision strategy</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> akka.actor.&#123;<span class="type">SupervisorStrategy</span>, <span class="type">OneForOneStrategy</span>&#125;</span><br><span class="line"><span class="keyword">import</span> akka.actor.&#123;<span class="type">ActorKilledException</span>, <span class="type">ActorInitializationException</span>&#125;</span><br><span class="line"><span class="keyword">import</span> akka.actor.<span class="type">SupervisorStrategy</span>._</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">object</span> <span class="title">ResumeSupervisor</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">apply</span></span>() = <span class="type">OneForOneStrategy</span>() &#123;</span><br><span class="line">    <span class="keyword">case</span> _: <span class="type">ActorInitializationException</span> =&gt; <span class="type">Stop</span></span><br><span class="line">    <span class="keyword">case</span> _: <span class="type">ActorKilledException</span> =&gt; <span class="type">Stop</span></span><br><span class="line">    <span class="comment">// resume the actor for general execption</span></span><br><span class="line">    <span class="keyword">case</span> _: <span class="type">Exception</span> =&gt; <span class="type">Resume</span></span><br><span class="line">    <span class="keyword">case</span> _ =&gt; <span class="type">Escalate</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="error-kernel-pattern"><a class="markdownIt-Anchor" href="#error-kernel-pattern"></a> Error Kernel Pattern</h2>
+<p>整个Akka系统，被设计成一个树形结构，底层的子Actor由其上一层的父Actor创建并管理。</p>
+<p><img src="/images/error-kernel-pattern.png" alt="" /></p>
+<p><code>Error kernel pattern</code>的同样来源于<code>Erlang</code>，其核心思想在于，处于上层的<code>Actor</code>承担风险较小的任务，出错之后尽量采用<code>resume</code>的方式来恢复，处于底层的<code>Actor</code>承担更加危险的任务，出错之后通常采用<code>restart</code>的方法来恢复。</p>
+<p>由于不同层级的<code>actor</code>在整个系统中的地位不同，在设计<code>actor</code>系统的时候，倾向于将重要的数据放在上层的<code>actor</code>,而将具体要执行的操作下放到下层的<code>actor</code>。</p>
+<h2 id="death-watch"><a class="markdownIt-Anchor" href="#death-watch"></a> Death Watch</h2>
+<p>对于那些不存在父子关系的<code>actor</code>, 一个<code>actor</code>如果想要获得另一个<code>actor</code>生命周期相关的信息，可以使用<code>death watch</code>, 在被关注的<code>actor</code>挂掉的时候收到<code>Terminated</code>消息并采取相应动作。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> akka.actor.&#123; <span class="type">Actor</span>, <span class="type">Props</span>, <span class="type">Terminated</span> &#125;</span><br><span class="line"> </span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">WatchActor</span> <span class="keyword">extends</span> <span class="title">Actor</span> </span>&#123;</span><br><span class="line">  <span class="keyword">val</span> child = context.actorOf(<span class="type">Props</span>.empty, <span class="string">&quot;child&quot;</span>)</span><br><span class="line">  context.watch(child) <span class="comment">// &lt;-- this is the only call needed for registration</span></span><br><span class="line">  <span class="keyword">var</span> lastSender = context.system.deadLetters</span><br><span class="line"> </span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> </span>= &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="string">&quot;kill&quot;</span> =&gt;</span><br><span class="line">      context.stop(child); lastSender = sender()</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Terminated</span>(`child`) =&gt; lastSender ! <span class="string">&quot;finished&quot;</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>death watch</code>一个典型的应用是关闭<code>ActorSystem</code>。</p>
+<p><code>ActorSystem</code>应该在什么时候被关闭呢？一个自然的答案 —— 在<code>actor</code>处理完所有的消息之后。如何知道<code>actor</code>已经处理完所有的消息呢？由于<code>actor</code>消息处理是异步的，这是个很难回答的问题。</p>
+<p>一个可能的方案是，估算一下系统处理消息所需的时间，设置一个超时，到达时限后关闭<code>ActorSystem</code>，但这只是一个粗略的实现。</p>
+<p>如果需要更加精确的方案，可以考虑使用<code>death watch</code>, 参考<a href="http://letitcrash.com/post/30165507578/shutdown-patterns-in-akka-2"><code>akka shutdown patterns</code></a>, 核心思想是设计一个单独的<code>actor</code>来关注所有其他的<code>actor</code>,当这些<code>actor</code>都发出<code>Teminated</code>消息之后，关闭整个系统。</p>
+<h2 id="总结"><a class="markdownIt-Anchor" href="#总结"></a> 总结</h2>
+<p><code>Akka</code>的错误恢复机制，遵循了<code>Let it crash</code>哲学，体现了优雅的简洁性，使得构建稳定健壮的分布式系统成为可能。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2016/05/09/akka-2016-5-9-akka-in-scala-5/" data-id="cmlkuqb210009t6lh6fyjem2h" data-title="Akka in Scala Part 5 - 监护与错误恢复" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/05/10/akka-2016-5-10-akka-in-scala-6/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Akka in Scala Part 6 - Router
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/05/08/akka-2016-5-8-akka-in-scala-4/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Akka in Scala Part 4 - 测试</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

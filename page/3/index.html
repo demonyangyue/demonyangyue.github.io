@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Hack on heaven&#39;s door">
+<meta property="og:type" content="website">
+<meta property="og:title" content="crackshell">
+<meta property="og:url" content="http://demonyangyue.github.io/page/3/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="Hack on heaven&#39;s door">
+<meta property="og:locale">
+<meta property="article:author" content="Yang, Yue">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-akka-2016-4-29-akka-in-scala-3" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/04/29/akka-2016-4-29-akka-in-scala-3/" class="article-date">
+  <time class="dt-published" datetime="2016-04-28T16:00:00.000Z" itemprop="datePublished">2016-04-29</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/04/29/akka-2016-4-29-akka-in-scala-3/">Akka in Scala Part 3 - Actor</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>在Akka的舞台上，Actor是其主角。Akka程序中，发生的主要事情就是Actor之间传输并处理消息。</p>
+        
+          <p class="article-more-link">
+            <a href="/2016/04/29/akka-2016-4-29-akka-in-scala-3/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2016/04/29/akka-2016-4-29-akka-in-scala-3/" data-id="cmlkuqb1z0004t6lh2dm54u90" data-title="Akka in Scala Part 3 - Actor" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-akka-2016-4-28-akka-in-scala-2" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/04/28/akka-2016-4-28-akka-in-scala-2/" class="article-date">
+  <time class="dt-published" datetime="2016-04-27T16:00:00.000Z" itemprop="datePublished">2016-04-28</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/04/28/akka-2016-4-28-akka-in-scala-2/">Akka in Scala Part 2 - Akka 并发之道</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="初识akka"><a class="markdownIt-Anchor" href="#初识akka"></a> 初识Akka</h2>
+<p>并发，是计算机世界与生俱来的命题，从CPU的分时处理，到web网站响应多用户请求，无处不彰显着并发的力量。</p>
+<p>概言之，并发模型可分为两种，共享可变状态模型和消息传递模型。</p>
+<p>多线程是共享可变状态模型的经典例子，上一篇我们已经简要解释了这种模型的问题。</p>
+<p>消息传递模型有两种经典的实现，一种是CSP(Communicating Sequential Processes), 例如Golang中的Goroutine和Channel， 另一种是Actor, 例如Erlang的OTP和Scala的Akka。相对于CSP，Actor更加适应分布式环境。</p>
+        
+          <p class="article-more-link">
+            <a href="/2016/04/28/akka-2016-4-28-akka-in-scala-2/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2016/04/28/akka-2016-4-28-akka-in-scala-2/" data-id="cmlkuqb1w0000t6lh9783hmou" data-title="Akka in Scala Part 2 - Akka 并发之道" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-akka-2016-4-8-akka-in-scala-1" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/04/08/akka-2016-4-8-akka-in-scala-1/" class="article-date">
+  <time class="dt-published" datetime="2016-04-07T16:00:00.000Z" itemprop="datePublished">2016-04-08</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/04/08/akka-2016-4-8-akka-in-scala-1/">Akka in Scala Part 1 - Java dosen&#39;t work</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="java-之殇"><a class="markdownIt-Anchor" href="#java-之殇"></a> Java 之殇</h2>
+<p>我无意挑起编程宗教间的争论，仅仅想阐述一个简单的事实 – Java doesn’t work.</p>
+<p>你从最优秀的Java书籍中学到了解耦接口与实现，于是开始热衷于设计出各种各样的接口，然而这些接口要么支持的方法太少，沦为几乎无用的鸡肋，要么需要实现方法太多，给子类造成沉重的负担。Java还慷慨地给了你额外的’奖励’ – 同样的方法声明在各个子类中需要一遍又一遍地重复，如同遭受了计算机世界中恶灵的诅咒。</p>
+<p>你从最优秀的Java博客中掌握了设计模式，开始实现各种各样的单件类，如同发现新大陆一般对访问权限控制，枚举变量之类的奇技淫巧兴奋不已。然而所有的设计模式，背后都对应着现实中的高频需求，在Java的内在世界，这些需求却被无情地置于荒漠之中。</p>
+<p>Java最大的魅力在于，这门语言总在试图表达正确的概念，却总能展现丑陋的实现，这一点在并发编程领域，体现得淋漓尽致。</p>
+        
+          <p class="article-more-link">
+            <a href="/2016/04/08/akka-2016-4-8-akka-in-scala-1/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2016/04/08/akka-2016-4-8-akka-in-scala-1/" data-id="cmlkuqb1z0005t6lh1533fzy2" data-title="Akka in Scala Part 1 - Java dosen&#39;t work" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-mesos-2015-9-16-mesos-sharing" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/09/16/mesos-2015-9-16-mesos-sharing/" class="article-date">
+  <time class="dt-published" datetime="2015-09-15T16:00:00.000Z" itemprop="datePublished">2015-09-16</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2015/09/16/mesos-2015-9-16-mesos-sharing/">Mesos 札记</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>基于云平台的应用如雨后春笋般涌出，任务处理应用如Hadoop，Spark，Storm，服务调度应用Marathon, Aurora, Chronos, 数据库Redis, Cassandra, Mongodb, 搜索引擎ElasticSearch, 消息系统kafka。面对如此纷繁的应用，需要一个操作系统，在应用之间分配集群资源，在此背景之下，云世界的操作系统——mesos， 应运而生。</p>
+<p>本文是Mesos的学习笔记，主要基于<a href="http://mesos.berkeley.edu/mesos_tech_report.pdf">Mesos white paper</a>, 和<a href="http://cloudarchitectmusings.com/2015/03/23/apache-mesos-the-true-os-for-the-software-defined-data-center/">Mesos系列博客</a>。</p>
+        
+          <p class="article-more-link">
+            <a href="/2015/09/16/mesos-2015-9-16-mesos-sharing/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2015/09/16/mesos-2015-9-16-mesos-sharing/" data-id="cmlkuqb23000zt6lheyvyfcc5" data-title="Mesos 札记" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-rails-2015-6-24-rails-code-reading-7" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/06/24/rails-2015-6-24-rails-code-reading-7/" class="article-date">
+  <time class="dt-published" datetime="2015-06-23T16:00:00.000Z" itemprop="datePublished">2015-06-24</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2015/06/24/rails-2015-6-24-rails-code-reading-7/">Rails源码管窥7 - autoload 机制</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>在开发大型web应用时，一个普遍的痛点是在每个源代码文件的开头，都需要一长串的import来引入所需的类，使得源代码变得冗长并且容易出错。<br />
+Rails通过<code>ActiveSupport::Autoload</code>模块，免去了手动加载类或者模块的烦恼。Rails的autoload机制主要提供给了两大功能：</p>
+<ul>
+<li>自动加载类和模块的定义</li>
+</ul>
+<p>当rails看到未定义的常量时，会根据名字猜测其所处的路径，然后加载其定义。这里又一次体现了rails <code>convention over configuration</code>哲学的强大力量。</p>
+<p>Rails采用缓式(lazy)加载的策略，在常量名首次出现时试图尝试其定义。缓式加载使得rails server在开发模式启动时，只需加载少量的类及模块定义，整个启动过程可在较短时间内完成。</p>
+<ul>
+<li>文件修改后自动重新加载</li>
+</ul>
+<p>当处于开发模式时，如果开发者修改了controller, model等目录下的源码文件，无需重启服务器，下一次请求rails会自动读取最新的定义，后面我们会一起探索这样的魔法是如何实现的。</p>
+        
+          <p class="article-more-link">
+            <a href="/2015/06/24/rails-2015-6-24-rails-code-reading-7/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2015/06/24/rails-2015-6-24-rails-code-reading-7/" data-id="cmlkuqb260024t6lh38h9bg0q" data-title="Rails源码管窥7 - autoload 机制" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-rails-2015-6-17-rails-code-reading-6" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/06/17/rails-2015-6-17-rails-code-reading-6/" class="article-date">
+  <time class="dt-published" datetime="2015-06-16T16:00:00.000Z" itemprop="datePublished">2015-06-17</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2015/06/17/rails-2015-6-17-rails-code-reading-6/">Rails源码管窥6 - 数据验证</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>在web开发的过程中，经常需要对数据的有效性进行验证，以保证数据符合我们的需求。</p>
+<p>数据验证可以在以下几处完成：</p>
+<ol>
+<li>
+<p>在前端通过JavaScript进行验证。Javascript最初被创造的目的就是为了对表单进行数据验证，使用JS验证的优点是简单，响应迅速，缺点在于无法对涉及后端逻辑的数据进行验证。</p>
+</li>
+<li>
+<p>在Model层进行验证。当数据验证需要在后端完成时，这是推荐的做法。</p>
+</li>
+<li>
+<p>在Controller层进行验证。这种做法的主要缺点在于会使controller的代码膨胀，并且增加与model层的耦合度，不利于代码的阅读和维护。</p>
+</li>
+<li>
+<p>在数据库层面进行验证。数据库也提供了constraints功能来对保证数据的正确性，但是缺点主要在于提供的验证方式有限，并且直到数据最终存储到数据库前，才能发现错误。</p>
+</li>
+</ol>
+<p>Rails通过ActiveModel模块提供了一系列预定义的类来辅助验证，用户也可以根据自己的需求来自定义验证逻辑。</p>
+        
+          <p class="article-more-link">
+            <a href="/2015/06/17/rails-2015-6-17-rails-code-reading-6/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2015/06/17/rails-2015-6-17-rails-code-reading-6/" data-id="cmlkuqb260021t6lhdx7f2vwi" data-title="Rails源码管窥6 - 数据验证" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-rails-2015-6-16-rails-code-reading-5" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/06/16/rails-2015-6-16-rails-code-reading-5/" class="article-date">
+  <time class="dt-published" datetime="2015-06-15T16:00:00.000Z" itemprop="datePublished">2015-06-16</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2015/06/16/rails-2015-6-16-rails-code-reading-5/">Rails源码管窥5 - 添加属性方法</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>这一节我们研究rails MVC 架构中的model部分，rails 中有三种model相关的类型：<code>ActiveModel, ActiveRecord 和 ActiveResource</code>。</p>
+<p><code>ActiveModel</code>实现了和model相关的许多功能，比如<code>validation</code>,<code>ActiveRecord</code>在<code>ActiveModel</code>的基础上，提供了和数据库相关的ORM支持，<code>ActiveResource</code>在<code>ActiveModel</code>的基础上，提供了对<code>WebService API</code>的支持。本节我们关注<code>ActiveModel</code>相关的模块。</p>
+        
+          <p class="article-more-link">
+            <a href="/2015/06/16/rails-2015-6-16-rails-code-reading-5/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2015/06/16/rails-2015-6-16-rails-code-reading-5/" data-id="cmlkuqb26001yt6lh70a59t3n" data-title="Rails源码管窥5 - 添加属性方法" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-rails-2015-6-7-rails-code-reading-4" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/06/07/rails-2015-6-7-rails-code-reading-4/" class="article-date">
+  <time class="dt-published" datetime="2015-06-06T16:00:00.000Z" itemprop="datePublished">2015-06-07</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2015/06/07/rails-2015-6-7-rails-code-reading-4/">Rails源码管窥4 - 模板缓存</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>通过上一节的研究，我们理解了Rails模板查找机制。<br />
+但复杂的查找逻辑也意味着昂贵的时间开销，那么如何提高模板查找的效率呢？聪明的你一定已经想到了——缓存查找结果。</p>
+<p>我们该如何实现rails的模板缓存系统呢？<br />
+最简单的办法是使用一个hash ,但是查找结果由<code>name, prefix, partial, details</code>这些参数共同决定， 那么hash key该如设计呢？</p>
+<p>让我们一起到Rails源码中寻找答案吧。</p>
+        
+          <p class="article-more-link">
+            <a href="/2015/06/07/rails-2015-6-7-rails-code-reading-4/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2015/06/07/rails-2015-6-7-rails-code-reading-4/" data-id="cmlkuqb270028t6lh8bnuhct3" data-title="Rails源码管窥4 - 模板缓存" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-rails-2015-6-1-rails-code-reading-3" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/06/01/rails-2015-6-1-rails-code-reading-3/" class="article-date">
+  <time class="dt-published" datetime="2015-05-31T16:00:00.000Z" itemprop="datePublished">2015-06-01</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2015/06/01/rails-2015-6-1-rails-code-reading-3/">Rails源码管窥3 - 模板查找</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>上一篇中通过对render函数调用栈的学习，我们理解了controller在调用render函数时，如何找到renderer并渲染到相应的template。但是rails是如何知道应该渲染哪个模板的呢？这正是本节我们关注的问题。</p>
+        
+          <p class="article-more-link">
+            <a href="/2015/06/01/rails-2015-6-1-rails-code-reading-3/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2015/06/01/rails-2015-6-1-rails-code-reading-3/" data-id="cmlkuqb26001vt6lhf6vifxso" data-title="Rails源码管窥3 - 模板查找" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-rails-2015-5-27-rails-code-reading-2" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/05/28/rails-2015-5-27-rails-code-reading-2/" class="article-date">
+  <time class="dt-published" datetime="2015-05-27T16:00:00.000Z" itemprop="datePublished">2015-05-28</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2015/05/28/rails-2015-5-27-rails-code-reading-2/">Rails源码管窥2 - render内幕</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>Model-View-Controller(MVC)是Rails的核心架构。在Controller定义的方法中，最后一步通常是调用render函数，将Controller生成的数据渲染到指定的template， 例如：<code>format.json &#123; render json: @article.errors, status: :unprocessable_entity &#125;</code> , 那么render函数在调用时，幕后做了什么呢？让我们一起开启探索之旅吧。</p>
+        
+          <p class="article-more-link">
+            <a href="/2015/05/28/rails-2015-5-27-rails-code-reading-2/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2015/05/28/rails-2015-5-27-rails-code-reading-2/" data-id="cmlkuqb25001rt6lh84cp0idn" data-title="Rails源码管窥2 - render内幕" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+
+
+  <nav id="page-nav">
+    
+    <a class="extend prev" rel="prev" href="/page/2/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/4/">Next &raquo;</a>
+  </nav>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

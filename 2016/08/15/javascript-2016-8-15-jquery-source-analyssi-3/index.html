@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>jQuery 源码精粹3 -- 节点处理 | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="引言 jQuery支持丰富的DOM节点操作：  属性设置  attributes.js css.js data.js   插入或删除节点  manipulation.js   节点遍历  traversing.js    由于JavaScript已经对操作DOM节点提供了基础性支持，jQuery在实现这些功能的时候，主要是提供一层封装。仔细研读源码实现，仍可收获许多启发：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="jQuery 源码精粹3 -- 节点处理">
+<meta property="og:url" content="http://demonyangyue.github.io/2016/08/15/javascript-2016-8-15-jquery-source-analyssi-3/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="引言 jQuery支持丰富的DOM节点操作：  属性设置  attributes.js css.js data.js   插入或删除节点  manipulation.js   节点遍历  traversing.js    由于JavaScript已经对操作DOM节点提供了基础性支持，jQuery在实现这些功能的时候，主要是提供一层封装。仔细研读源码实现，仍可收获许多启发：">
+<meta property="og:locale">
+<meta property="article:published_time" content="2016-08-14T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-20T06:28:07.585Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="jQuery">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-javascript-2016-8-15-jquery-source-analyssi-3" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/08/15/javascript-2016-8-15-jquery-source-analyssi-3/" class="article-date">
+  <time class="dt-published" datetime="2016-08-14T16:00:00.000Z" itemprop="datePublished">2016-08-15</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      jQuery 源码精粹3 -- 节点处理
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>jQuery支持丰富的DOM节点操作：</p>
+<ul>
+<li>属性设置
+<ul>
+<li>attributes.js</li>
+<li>css.js</li>
+<li>data.js</li>
+</ul>
+</li>
+<li>插入或删除节点
+<ul>
+<li>manipulation.js</li>
+</ul>
+</li>
+<li>节点遍历
+<ul>
+<li>traversing.js</li>
+</ul>
+</li>
+</ul>
+<p>由于JavaScript已经对操作DOM节点提供了基础性支持，jQuery在实现这些功能的时候，主要是提供一层封装。仔细研读源码实现，仍可收获许多启发：</p>
+<span id="more"></span>
+<h2 id="attributesjs"><a class="markdownIt-Anchor" href="#attributesjs"></a> attributes.js</h2>
+<p>关注其核心方法<code>attr</code>，根据jQuery API <a href="http://api.jquery.com/attr/">文档</a>， <code>attr</code>方法主要有两种调用形式：</p>
+<ul>
+<li><code>.attr( attributeName )</code> ：获取首个匹配节点的属性值</li>
+<li><code>.attr( attributeName, value )</code> ： 设置所有匹配节点的属性值， 有三种调用形式：
+<ul>
+<li><code>.attr( attributeName, value )</code> : <code>value</code>是普通的<code>String</code>类型</li>
+<li><code>.attr( attributes )</code> ： <code>attributes</code> 是一个由<code>attribute-value</code>键值对构成的<code>PlainObject</code></li>
+<li><code>.attr( attributeName, function )</code>: 需设置的属性值由<code>function</code>的返回值提供</li>
+</ul>
+</li>
+</ul>
+<h3 id="片段一"><a class="markdownIt-Anchor" href="#片段一"></a> 片段一</h3>
+<p>实际的代码实现：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">jQuery.<span class="property">fn</span>.<span class="title function_">extend</span>( &#123;</span><br><span class="line">	<span class="attr">attr</span>: <span class="keyword">function</span>(<span class="params"> name, value </span>) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="title function_">access</span>( <span class="variable language_">this</span>, jQuery.<span class="property">attr</span>, name, value, <span class="variable language_">arguments</span>.<span class="property">length</span> &gt; <span class="number">1</span> );</span><br><span class="line">	&#125;</span><br><span class="line">&#125; );</span><br></pre></td></tr></table></figure>
+<p><code>access</code>方法：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Multifunctional method to get and set values of a collection</span></span><br><span class="line"><span class="comment">// The value/s can optionally be executed if it&#x27;s a function</span></span><br><span class="line"><span class="keyword">var</span> access = <span class="keyword">function</span>(<span class="params"> elems, fn, key, value, chainable, emptyGet, raw </span>) &#123;</span><br><span class="line">... &#125;;	</span><br></pre></td></tr></table></figure>
+<p>这里需要指出的是，之前提到的<code>attr</code>方法的各种调用形式，无论是<code>get</code>还是<code>set</code>, 无论是传递<code>plain object</code>还是<code>function</code>,所有的实现都是在<code>access</code>中，导致<code>access</code>的内部代码比较凌乱复杂。</p>
+<p>这是一个值得商榷的设计，因为它违反了KISS原则，为了获得灵活性牺牲了可读性。当然，由于JavaScript本身传递函数参数的缺陷（例如不支持函数重载）， 这么做也是无奈之举。</p>
+<h2 id="cssjs和datajs"><a class="markdownIt-Anchor" href="#cssjs和datajs"></a> css.js和data.js</h2>
+<p>和<code>attr.js</code>类似，<code>css.js</code>的目的是为了存取节点的css属性，<code>data.js</code>的目的是为了存取节点私有数据。这三个文件的实现代码存在很大程度的重复，是jQuery未来实现可以改进的地方。</p>
+<h2 id="manipulationjs"><a class="markdownIt-Anchor" href="#manipulationjs"></a> manipulation.js</h2>
+<p><code>manipulation.js</code>中实现了操作DOM节点（比如插入和删除）的逻辑。</p>
+<h3 id="片段二"><a class="markdownIt-Anchor" href="#片段二"></a> 片段二</h3>
+<p>拿插入方法<code>append</code>举例：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">append</span>: <span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="title function_">domManip</span>( <span class="variable language_">this</span>, <span class="variable language_">arguments</span>, <span class="keyword">function</span>(<span class="params"> elem </span>) &#123;</span><br><span class="line">		<span class="keyword">if</span> ( <span class="variable language_">this</span>.<span class="property">nodeType</span> === <span class="number">1</span> || <span class="variable language_">this</span>.<span class="property">nodeType</span> === <span class="number">11</span> || <span class="variable language_">this</span>.<span class="property">nodeType</span> === <span class="number">9</span> ) &#123;</span><br><span class="line">			<span class="keyword">var</span> target = <span class="title function_">manipulationTarget</span>( <span class="variable language_">this</span>, elem );</span><br><span class="line">			target.<span class="title function_">appendChild</span>( elem );</span><br><span class="line">		&#125;</span><br><span class="line">	&#125; );</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
+<p>可以看到，底层调用了javascript的<code>appendChild</code>方法，来实现插入节点，比较简单。</p>
+<h3 id="片段三"><a class="markdownIt-Anchor" href="#片段三"></a> 片段三</h3>
+<p>这一段是<code>manipulation.js</code>中最有趣的代码：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">jQuery.<span class="title function_">each</span>( &#123;</span><br><span class="line">	<span class="attr">appendTo</span>: <span class="string">&quot;append&quot;</span>,</span><br><span class="line">	<span class="attr">prependTo</span>: <span class="string">&quot;prepend&quot;</span>,</span><br><span class="line">	<span class="attr">insertBefore</span>: <span class="string">&quot;before&quot;</span>,</span><br><span class="line">	<span class="attr">insertAfter</span>: <span class="string">&quot;after&quot;</span>,</span><br><span class="line">	<span class="attr">replaceAll</span>: <span class="string">&quot;replaceWith&quot;</span></span><br><span class="line">&#125;, <span class="keyword">function</span>(<span class="params"> name, original </span>) &#123;</span><br><span class="line">	jQuery.<span class="property">fn</span>[ name ] = <span class="keyword">function</span>(<span class="params"> selector </span>) &#123;</span><br><span class="line">		<span class="keyword">var</span> elems,</span><br><span class="line">			ret = [],</span><br><span class="line">			insert = <span class="title function_">jQuery</span>( selector ),</span><br><span class="line">			last = insert.<span class="property">length</span> - <span class="number">1</span>,</span><br><span class="line">			i = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">for</span> ( ; i &lt;= last; i++ ) &#123;</span><br><span class="line">			elems = i === last ? <span class="variable language_">this</span> : <span class="variable language_">this</span>.<span class="title function_">clone</span>( <span class="literal">true</span> );</span><br><span class="line">			<span class="title function_">jQuery</span>( insert[ i ] )[ original ]( elems );</span><br><span class="line"></span><br><span class="line">			<span class="comment">// Support: Android &lt;=4.0 only, PhantomJS 1 only</span></span><br><span class="line">			<span class="comment">// .get() because push.apply(_, arraylike) throws on ancient WebKit</span></span><br><span class="line">			push.<span class="title function_">apply</span>( ret, elems.<span class="title function_">get</span>() );</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">return</span> <span class="variable language_">this</span>.<span class="title function_">pushStack</span>( ret );</span><br><span class="line">	&#125;;</span><br><span class="line">&#125; );</span><br></pre></td></tr></table></figure>
+<p>对于<code>append</code>方法，有一个对应的类似方法<code>appendTo</code>, 二者的唯一区别在于调换了source和target，相应的还有<code>prependTo</code>, <code>insertBefore</code>, <code>insertAfter</code>和<code>replaceAll</code>, 他们都是基于原方法，调用<code>jQuery( insert[ i ] )[ original ]( elems );</code>得以交换source和target。</p>
+<p>这类优雅的实现，得益于JavaScript语言本身较强的动态性，极大地减少了重复代码。</p>
+<h2 id="traversingjs"><a class="markdownIt-Anchor" href="#traversingjs"></a> traversing.js</h2>
+<p><code>traversing.js</code>中实现了遍历DOM节点树的逻辑。由于JavaScript本身已经对遍历DOM节点树提供了较好的支持，jQuery只是提供了一层很浅的封装。</p>
+<h3 id="片段四"><a class="markdownIt-Anchor" href="#片段四"></a> 片段四</h3>
+<p>抽取一段有趣的代码：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">jQuery.<span class="title function_">each</span>( &#123;</span><br><span class="line">	<span class="attr">parents</span>: <span class="keyword">function</span>(<span class="params"> elem </span>) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="title function_">dir</span>( elem, <span class="string">&quot;parentNode&quot;</span> );</span><br><span class="line">	&#125;,</span><br><span class="line">	<span class="attr">parentsUntil</span>: <span class="keyword">function</span>(<span class="params"> elem, i, until </span>) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="title function_">dir</span>( elem, <span class="string">&quot;parentNode&quot;</span>, until );</span><br><span class="line">	&#125;,</span><br><span class="line">	</span><br><span class="line">	...</span><br><span class="line">&#125;， <span class="keyword">function</span> (<span class="params">name, fn</span>) &#123;</span><br><span class="line">...</span><br><span class="line">&#125; );</span><br></pre></td></tr></table></figure>
+<p>许多遍历方法如<code>parents</code>，<code>nextAll</code>, <code>prevUntil</code>,底层都是调用了<code>dir</code>方法实现,<code>dir</code>方法是如何定义的的呢？</p>
+<h3 id="片段五"><a class="markdownIt-Anchor" href="#片段五"></a> 片段五</h3>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> <span class="keyword">function</span>(<span class="params"> elem, dir, until </span>) &#123;</span><br><span class="line">	<span class="keyword">var</span> matched = [],</span><br><span class="line">		truncate = until !== <span class="literal">undefined</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">while</span> ( ( elem = elem[ dir ] ) &amp;&amp; elem.<span class="property">nodeType</span> !== <span class="number">9</span> ) &#123;</span><br><span class="line">		<span class="keyword">if</span> ( elem.<span class="property">nodeType</span> === <span class="number">1</span> ) &#123;</span><br><span class="line">			<span class="keyword">if</span> ( truncate &amp;&amp; <span class="title function_">jQuery</span>( elem ).<span class="title function_">is</span>( until ) ) &#123;</span><br><span class="line">				<span class="keyword">break</span>;</span><br><span class="line">			&#125;</span><br><span class="line">			matched.<span class="title function_">push</span>( elem );</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> matched;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>根据传入的<code>dir</code>及<code>until</code>参数，按方向遍历获取所有满足条件的节点，再次展现了JavaScript较强的动态性。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2016/08/15/javascript-2016-8-15-jquery-source-analyssi-3/" data-id="cmlkuqb24001ct6lh5ebncqv9" data-title="jQuery 源码精粹3 -- 节点处理" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/08/16/javascript-2016-8-16-jquery-source-analysis-4/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          jQuery 源码精粹4 -- defer与promise
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/08/11/javascript-2016-8-11-jquery-source-analysis-2/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">jQuery 源码精粹2 -- 选择器</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

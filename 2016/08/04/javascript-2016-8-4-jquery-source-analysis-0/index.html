@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>jQuery 源码精粹0 -- 引言 | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="缘起 作为世界上被误解最深的编程语言，JavaScript承载了很多并不公平的指责。 相对于它一无是处的远房表兄Java，JavaScript至少在这三处设计得非常优雅：  对象字面量表示法。（以及JSON） 基于原型链的继承模型 匿名函数块  以我对JavaScript粗浅的理解，编写优秀的JavaScript程序，基本是把这三点用到极致，并且避免所有其余JS糟粕的过程。jQuery, 作为应">
+<meta property="og:type" content="article">
+<meta property="og:title" content="jQuery 源码精粹0 -- 引言">
+<meta property="og:url" content="http://demonyangyue.github.io/2016/08/04/javascript-2016-8-4-jquery-source-analysis-0/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="缘起 作为世界上被误解最深的编程语言，JavaScript承载了很多并不公平的指责。 相对于它一无是处的远房表兄Java，JavaScript至少在这三处设计得非常优雅：  对象字面量表示法。（以及JSON） 基于原型链的继承模型 匿名函数块  以我对JavaScript粗浅的理解，编写优秀的JavaScript程序，基本是把这三点用到极致，并且避免所有其余JS糟粕的过程。jQuery, 作为应">
+<meta property="og:locale">
+<meta property="article:published_time" content="2016-08-03T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-20T06:28:07.586Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="jQuery">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-javascript-2016-8-4-jquery-source-analysis-0" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/08/04/javascript-2016-8-4-jquery-source-analysis-0/" class="article-date">
+  <time class="dt-published" datetime="2016-08-03T16:00:00.000Z" itemprop="datePublished">2016-08-04</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      jQuery 源码精粹0 -- 引言
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="缘起"><a class="markdownIt-Anchor" href="#缘起"></a> 缘起</h2>
+<p>作为世界上被<a href="http://javascript.crockford.com/javascript.html">误解最深的编程语言</a>，JavaScript承载了很多并不公平的指责。</p>
+<p>相对于它一无是处的远房表兄Java，JavaScript至少在这三处设计得非常优雅：</p>
+<ul>
+<li>对象字面量表示法。（以及JSON）</li>
+<li>基于原型链的继承模型</li>
+<li>匿名函数块</li>
+</ul>
+<p>以我对JavaScript粗浅的理解，编写优秀的JavaScript程序，基本是把这三点用到极致，并且避免所有其余JS糟粕的过程。jQuery, 作为应用最广的JavaScript库，是一个很好的学习范例。</p>
+<p>本系列博客，旨在和你一起暂时远离html和css的泥沼，徜徉在jQuery源码的沙滩，寻找那些闪光的贝壳。</p>
+<span id="more"></span>
+<h2 id="环境准备"><a class="markdownIt-Anchor" href="#环境准备"></a> 环境准备</h2>
+<p>下载代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/jquery/jquery</span><br></pre></td></tr></table></figure>
+<p>切换到最新的release 版本</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git checkout tags/3.1.0</span><br></pre></td></tr></table></figure>
+<p>jQuery代码随着版本的更新，自身也在不断地进化，推荐阅读最新版本的代码。本文写作的时候，jQuery 最新的版本是3.1.0</p>
+<h2 id="代码架构"><a class="markdownIt-Anchor" href="#代码架构"></a> 代码架构</h2>
+<p>jQuery的实现代码位于src目录，统计一下代码行数：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find src -name &quot;*.js&quot; | xargs wc -l</span><br></pre></td></tr></table></figure>
+<p>总计9008行，代码量并不大，正好适于学习。</p>
+<p>首先分析一下jQuery主要功能与源码之间的映射关系：</p>
+<ul>
+<li>代码入口
+<ul>
+<li>jquery.js</li>
+</ul>
+</li>
+<li>核心模块
+<ul>
+<li>core.js</li>
+</ul>
+</li>
+<li>选择器模块
+<ul>
+<li>selector-sizzle.js</li>
+<li>selector-native.js</li>
+</ul>
+</li>
+<li>节点处理模块
+<ul>
+<li>attributes.js</li>
+<li>css.js</li>
+<li>data.js</li>
+<li>manipulation.js</li>
+<li>traversing.js</li>
+</ul>
+</li>
+<li>ajax 模块
+<ul>
+<li>ajax.js</li>
+<li>deferred.js</li>
+<li>callbacks.js</li>
+</ul>
+</li>
+<li>事件模块
+<ul>
+<li>event.js</li>
+</ul>
+</li>
+<li>效果及动画模块
+<ul>
+<li>effects.js</li>
+<li>queue.js</li>
+</ul>
+</li>
+</ul>
+<h2 id="jqueryjs"><a class="markdownIt-Anchor" href="#jqueryjs"></a> jquery.js</h2>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">define</span>( [</span><br><span class="line">	<span class="string">&quot;./core&quot;</span>,</span><br><span class="line">	<span class="string">&quot;./selector&quot;</span>,</span><br><span class="line">	<span class="string">&quot;./traversing&quot;</span>,</span><br><span class="line">	<span class="string">&quot;./callbacks&quot;</span>,</span><br><span class="line">	<span class="string">&quot;./deferred&quot;</span>,</span><br><span class="line">	......</span><br><span class="line">	<span class="string">&quot;./exports/amd&quot;</span></span><br><span class="line">], <span class="keyword">function</span>(<span class="params"> jQuery </span>) &#123;</span><br><span class="line"></span><br><span class="line"><span class="meta">&quot;use strict&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> ( <span class="variable language_">window</span>.<span class="property">jQuery</span> = <span class="variable language_">window</span>.<span class="property">$</span> = jQuery );</span><br><span class="line"></span><br><span class="line">&#125; );</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>代码并不长，主要是导入相关的模块，并设置著名的<code>$</code>的全局变量。一些有趣的问题：</p>
+<ul>
+<li>define并非JavaScript的关键字，它是在哪里被定义，又是如何实现模块导入的呢？</li>
+</ul>
+<p>jQuery利用grunt定义编译任务，从代码<code>build/tasks/build.js</code>中，我们可以看到代码块：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">convert</span>(<span class="params"> name, path, contents </span>) &#123;</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line"><span class="comment">// Remove define wrappers, closure ends, and empty declarations</span></span><br><span class="line">  contents = contents</span><br><span class="line">	.<span class="title function_">replace</span>( <span class="regexp">/define\([^&#123;]*?&#123;\s*(?:(&quot;|&#x27;)use strict\1(?:;|))?/</span>, <span class="string">&quot;&quot;</span> )</span><br><span class="line">	.<span class="title function_">replace</span>( rdefineEnd, <span class="string">&quot;&quot;</span> );</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在执行<code>build</code>任务时，<code>require.js</code>会拼接所有的源码文件，作为<code>contents</code>参数传入<code>convert</code>函数，在<code>convert</code>执行的过程中，<code>define</code>包含的内容被相应的JS代码替换。</p>
+<ul>
+<li>在最终发布时，jquery.js会被编译成什么样子呢？</li>
+</ul>
+<p>可以在<code>dist/jquery.js</code>找到答案，简化后的版本：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">( <span class="keyword">function</span>(<span class="params"> <span class="variable language_">global</span>, factory </span>) &#123;</span><br><span class="line">    <span class="title function_">factory</span>(<span class="variable language_">global</span>);</span><br><span class="line">&#125;)(<span class="variable language_">window</span>, <span class="keyword">function</span> (<span class="params"><span class="variable language_">window</span>, noGlobal</span>)&#123;</span><br><span class="line">  </span><br><span class="line">  <span class="string">&quot;use strict&quot;</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">var</span> arr = [];</span><br><span class="line">  <span class="keyword">var</span> <span class="variable language_">document</span> = <span class="variable language_">window</span>.<span class="property">document</span>;</span><br><span class="line">  <span class="keyword">var</span> getProto = <span class="title class_">Object</span>.<span class="property">getPrototypeOf</span>;</span><br><span class="line">  <span class="keyword">var</span> slice = arr.<span class="property">slice</span>;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">//....</span></span><br><span class="line">  <span class="keyword">var</span> jQuery =  <span class="keyword">function</span>(<span class="params"> selector, context </span>) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> jQuery.<span class="property">fn</span>.<span class="title function_">init</span>( selector, context );</span><br><span class="line">  &#125;;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">//...</span></span><br><span class="line">  <span class="variable language_">window</span>.<span class="property">jQuery</span> = <span class="variable language_">window</span>.<span class="property">$</span> = jQuery;</span><br><span class="line">  <span class="keyword">return</span> jQuery;</span><br><span class="line"></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<ul>
+<li>为什么要设计define呢？看起来好像发明了新的语法。</li>
+</ul>
+<p>现代的构建工具，比如ruby世界的rake， scala世界的sbt以及JS世界的grunt，都拥有自定义的构建语法，这些工具被称作领域专属语言（DSL），基于原有的宿主语言实现，看起来像是发明了一套新的语法。用户在定义构建任务时，不仅可以使用工具提供的功能，同时也可以使用原宿主语言的所有特性，强大而灵活。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2016/08/04/javascript-2016-8-4-jquery-source-analysis-0/" data-id="cmlkuqb25001it6lhcgrxfc3f" data-title="jQuery 源码精粹0 -- 引言" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/08/10/javascript-2016-8-10-jquery-source-analysis-1/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          jQuery 源码精粹1 -- 核心模块
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/05/20/spark-2016-5-20-spark-1/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">spark 中的RDD 和 DAG</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Guava 源码笔记系列第一章 -- ImmutableList | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="本系列博客的目标读者是和我一样的初级Java 程序员。  有关源码阅读 入门一种编程语言，阅读经典类库或框架的代码，无疑是十分有效的方法，但是瀚若星辰的类库，选择哪一个阅读，常常让初学者无所适从。 我个人的体验是，通常一些Utils类库或者UT框架是一个不错的起点，这些库&#x2F;框架解决的是通用的问题，不涉及复杂的应用场景，易于上手，并且由于被广泛使用，代码质量有可靠保证。 Guava, 类似Boost">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Guava 源码笔记系列第一章 -- ImmutableList">
+<meta property="og:url" content="http://demonyangyue.github.io/2017/02/28/java-guava-2017-2-28-guava-code-analysis-1/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="本系列博客的目标读者是和我一样的初级Java 程序员。  有关源码阅读 入门一种编程语言，阅读经典类库或框架的代码，无疑是十分有效的方法，但是瀚若星辰的类库，选择哪一个阅读，常常让初学者无所适从。 我个人的体验是，通常一些Utils类库或者UT框架是一个不错的起点，这些库&#x2F;框架解决的是通用的问题，不涉及复杂的应用场景，易于上手，并且由于被广泛使用，代码质量有可靠保证。 Guava, 类似Boost">
+<meta property="og:locale">
+<meta property="article:published_time" content="2017-02-27T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-20T06:28:07.585Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="Guava">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-java-guava-2017-2-28-guava-code-analysis-1" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/02/28/java-guava-2017-2-28-guava-code-analysis-1/" class="article-date">
+  <time class="dt-published" datetime="2017-02-27T16:00:00.000Z" itemprop="datePublished">2017-02-28</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Guava 源码笔记系列第一章 -- ImmutableList
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>本系列博客的目标读者是和我一样的初级Java 程序员。</p>
+<h2 id="有关源码阅读"><a class="markdownIt-Anchor" href="#有关源码阅读"></a> 有关源码阅读</h2>
+<p>入门一种编程语言，阅读经典类库或框架的代码，无疑是十分有效的方法，但是瀚若星辰的类库，选择哪一个阅读，常常让初学者无所适从。</p>
+<p>我个人的体验是，通常一些Utils类库或者UT框架是一个不错的起点，这些库/框架解决的是通用的问题，不涉及复杂的应用场景，易于上手，并且由于被广泛使用，代码质量有可靠保证。</p>
+<p>Guava, 类似Boost 之于 c++, 可以算作Java的“准标准库”，未来版本的JDK很可能吸收Guava中一些优秀的设计并作为标准库一部分，正是入门学习Java代码的好资料。</p>
+<span id="more"></span>
+<h2 id="初识guava"><a class="markdownIt-Anchor" href="#初识guava"></a> 初识guava</h2>
+<p>第一次邂逅guava是在<a href="http://iwant.cainiao-inc.com/iwatch/report/metrics?dep_name=%E8%8F%9C%E9%B8%9F-%E6%8A%80%E6%9C%AF%E9%83%A8&amp;start_date=2016-08-01&amp;end_date=2017-03-30">鸟瞰</a>项目，@禅剑利用guava cache缓存数据库查询结果，使网页响应提高速度从4~5秒减少到1秒以内, 好奇心驱下使开始阅读guava源码。正好最近读完《Effective Java》,在guava源码中看到了大量书中所提的优秀实践，于是决定记录一些思考和感悟。</p>
+<p>对于一门编程语言来说，集合类型处于核心地位，例如<code>Lisp</code>名字就源于<code>List Processor</code>, 本系列博客从<code>guava</code>实现的一个集合类型 – <code>ImmutableList</code>类说起。</p>
+<h2 id="java的劣势"><a class="markdownIt-Anchor" href="#java的劣势"></a> Java的劣势</h2>
+<p>Java8中，<code>lambda</code>表达式、缓式集合类<code>Stream</code>等函数式特性的引入，标志着Java一只脚已经跨入了函数式编程的大门，函数虽然尚未成为一等公民，至少已能够在方法间传来传去。但是我觉得Java还有另外一只脚仍在函数式的大门之外，那就是<strong>不可变量</strong>。</p>
+<p>在纯粹的函数式世界如<code>Haskell</code>, 是不存在可变量(<code>mutable data</code>)的，对象状态的变迁通过建立一个新的数据对象来传递，副作用通过<code>Monad</code>之类的复杂机制来表达。<br />
+如《Effective Java》Item70 所述，对象的线程安全性可分为5级: immutable, unconditionally thread-safe, confitionally thread-safe, not thread-safe, thread-hostile, 其中不可变量为第一等的线程安全对象。</p>
+<p>不可变量与生俱来的线程安全性，使得函数式编程语言，天然适应大规模并发的场景。相对而言Java在这方面处于劣势，Java并发程序的编写，测试和调试都会遇到很多的陷阱和挑战。理论上来说，在Java中定义<code>Immutable Class</code>并不困难，如《Effective Java》Item15所述，需要遵循5条原则:</p>
+<ol>
+<li>
+<p>不要提供任何改变对象状态的方法(比如set方法)。</p>
+</li>
+<li>
+<p>让该类无法被继承(public final class XXX)。</p>
+</li>
+<li>
+<p>所有的属性都声明为final。</p>
+</li>
+<li>
+<p>所有的属性都声明为private。</p>
+</li>
+<li>
+<p>如果内部有任何属性引用了可变对象，访问这些属性是需通过防御式拷贝(defensive copy)。</p>
+</li>
+</ol>
+<p>实际工程中，主要的难点在最后一条，一来难以确定对象间复杂的引用关系，二来Java中对象拷贝是个棘手的问题。让我们来一起看看<code>Guava</code>中<code>ImmutableList</code>的源码实现。</p>
+<h2 id="immutablelist初体验"><a class="markdownIt-Anchor" href="#immutablelist初体验"></a> ImmutableList初体验</h2>
+<p>首先来看类定义：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">public abstract class ImmutableList&lt;E&gt; extends ImmutableCollection&lt;E&gt;</span><br><span class="line">    implements List&lt;E&gt;, RandomAccess </span><br></pre></td></tr></table></figure>
+<p>由于实现了<code>List</code>和<code>RandomAccess</code>接口，<code>ImmutableList</code>支持元素的随机访问，同时由于继承了<code>ImmutableCollection</code>，所有的修改操作如<code>add</code>,<code>addAll</code>,<code>remove</code>,都会直接抛出<code>UnsupportedOperationException</code>异常, 保证List本身是不可修改的。</p>
+<h2 id="创建immutablelist对象"><a class="markdownIt-Anchor" href="#创建immutablelist对象"></a> 创建ImmutableList对象</h2>
+<p>如《Effective Java》Item1 所述，我们在设计类的时候，倾向优先使用静态工厂方法(static factory method)而非构造函数(constructor)创建对象，优点在于:</p>
+<ol>
+<li>静态工厂方法多了一层名称信息，比构造函数更富表达性。</li>
+<li>可以更灵活地创建对象，比如缓式初始化，缓存已创建对象。</li>
+<li>静态方法内部返回的对象类型，可以是其声明类型的子类。</li>
+</ol>
+<p><code>ImmutableList</code>遵循了最佳实践。首先，<code>ImmutableList</code>不可以通过构造函数实例化，更准确地说，不可以在<code>package</code>外部通过构造函数实例化。具体是如何做到的呢？(可作为面试题<sup>_</sup>)其父类<code>Immutable Collection</code>的构造函数定义为:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ImmutableCollection() &#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>由于Java方法的默认访问权限是<code>package</code>, 所以只能在<code>package</code>内部调用构造函数。</p>
+<p>其次，<code>ImmutableList</code>提供了三种方式来创建对象:</p>
+<h3 id="immutablelistof"><a class="markdownIt-Anchor" href="#immutablelistof"></a> ImmutableList.of</h3>
+<p>代码示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ImmutableList&lt;String&gt; foobar = ImmutableList.of(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>, <span class="string">&quot;baz&quot;</span>);</span><br></pre></td></tr></table></figure>
+<p>该方法接受同类型的一组元素并生成一个<code>ImmutableList</code>, <code>of</code>方法的实现很有意思，不是简单的使用一个<code>varargs</code>参数，而是定义了一系列接受不同个数参数的方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;E&gt; ImmutableList&lt;E&gt; <span class="title function_">of</span><span class="params">()</span> </span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;E&gt; ImmutableList&lt;E&gt; <span class="title function_">of</span><span class="params">(E element)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;E&gt; ImmutableList&lt;E&gt; <span class="title function_">of</span><span class="params">(E e1, E e2)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;E&gt; ImmutableList&lt;E&gt; <span class="title function_">of</span><span class="params">(E e1, E e2, E e3)</span></span><br><span class="line">...</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;E&gt; ImmutableList&lt;E&gt; <span class="title function_">of</span><span class="params">(</span></span><br><span class="line"><span class="params">      E e1, E e2, E e3, E e4, E e5, E e6, E e7, E e8, E e9, E e10, E e11, E e12, E... others)</span></span><br><span class="line">  </span><br></pre></td></tr></table></figure>
+<p>直到参数个数超过12个时才用<code>varargs</code>，实际工作中看到这样的代码肯定会认为MDZZ，但是作为一个类库来说，这样设计一定有其道理，我猜想是为了性能优化。<code>varargs</code>在传递的时候，背后会有一次到<code>array</code>的隐式转换，性能不如普通的参数传递那么高。通常情况下，我们并不会传递超过12个参数，这样设计保证了绝大部分场景性能最优。</p>
+<h3 id="immutablelistcopyof"><a class="markdownIt-Anchor" href="#immutablelistcopyof"></a> ImmutableList.copyOf</h3>
+<p>代码示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> <span class="title function_">sampleMethod</span><span class="params">(Collection&lt;String&gt; collection)</span> &#123;</span><br><span class="line">   ImmutableList&lt;String&gt; defensiveCopy = ImmutableList.copyOf(collection);</span><br><span class="line">   ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>该方法接受一个<code>Collection</code>作为参数并返回一个<code>ImmutableList</code>。</p>
+<p>要实现<code>copyOf</code>方法，最简单的莫过于直接将底层的每个元素做深拷贝然后生成<code>ImmutableList</code>。但是对于所有情况都深拷贝的话，性能和存储开销必然比较大，源码里面是如何优化的呢？</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;E&gt; ImmutableList&lt;E&gt; <span class="title function_">copyOf</span><span class="params">(Collection&lt;? extends E&gt; elements)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (elements <span class="keyword">instanceof</span> ImmutableCollection) &#123;</span><br><span class="line">      </span><br><span class="line">      ImmutableList&lt;E&gt; list = ((ImmutableCollection&lt;E&gt;) elements).asList();</span><br><span class="line">      <span class="keyword">return</span> list.isPartialView() ? ImmutableList.&lt;E&gt;asImmutableList(list.toArray()) : list;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> construct(elements.toArray());</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到，<code>copyOf</code>方法是比较智能的，在参数已经是<code>ImmutableCollection</code>类型的情况下，直接复用原来的<code>collection</code>即可，其它情况下，通过<code>construct</code>方法，底层调用<code>Arrays.copyOf</code>做深拷贝。</p>
+<p>在源码注释中，提到了<code>ImmutableList</code>一个首要的特性:<a href="https://github.com/google/guava/blob/0f025e5d5d39a5d1ab709917f725d48a8464df50/guava/src/com/google/common/collect/ImmutableCollection.java#L57-L70"><code>Shallow immutability</code></a>, 这里的<code>Shallow</code>用的非常精髓，让我们仔细品味一下。</p>
+<p>在Java标准库中，<code>java.util.Collections</code>已经提供了一系列的<code>UnmodifiableCollection</code>实现，比如<code>UnmodifiableList</code>，但是这些实现有个严重的问题，当源collection被修改时，对应的<code>UnmodifiableCollection</code>也会受到影响，仿佛连体婴儿一般。不同于<code>UnmodifiableCollection</code>这样的妖艳贱货，<code>guava</code>中的<code>ImmutableCollection</code>由于使用了深拷贝，可以不受源Collection修改的影响。</p>
+<p>相对于<code>UnmodifiableColletion</code>提供的表面的不可变性(surface immutability), <code>ImmutableCollection</code>更深一层，但为什么不用<code>Deep</code>而说是<code>Shallow</code>呢？因为它们都无法真正摆脱一个幽灵:<code>mutable data</code>。Collection 本身固然可以实现为<code>Immutable</code>, 但是Collection所包含的每个元素，却仍然可能是<code>mutable object</code>。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">UserBean</span> <span class="variable">user</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">UserBean</span>();</span><br><span class="line">List&lt;UserBean&gt; userList = ImmutableList.of(user);</span><br><span class="line"></span><br><span class="line">userList.get(<span class="number">0</span>).setAge(<span class="number">27</span>); <span class="comment">//age is 27</span></span><br><span class="line">userList.get(<span class="number">0</span>).setAge(<span class="number">28</span>); <span class="comment">//age is changed, list also changed</span></span><br></pre></td></tr></table></figure>
+<h3 id="builder"><a class="markdownIt-Anchor" href="#builder"></a> Builder</h3>
+<p>代码示例:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> ImmutableList&lt;Color&gt; GOOGLE_COLORS =</span><br><span class="line">       ImmutableList.&lt;Color&gt;builder()</span><br><span class="line">           .addAll(WEBSAFE_COLORS)</span><br><span class="line">           .add(<span class="keyword">new</span> <span class="title class_">Color</span>(<span class="number">0</span>, <span class="number">191</span>, <span class="number">255</span>))</span><br><span class="line">           .build();</span><br></pre></td></tr></table></figure>
+<p>类似<code>StringBuilder</code>, <code>ImmutableList</code>也提供了<code>Builder</code>类，来减少中间对象的创建，提高内存使用效率。</p>
+<h2 id="君欲何往"><a class="markdownIt-Anchor" href="#君欲何往"></a> 君欲何往</h2>
+<p>Java8为什么没有实现guava中类似的不可变集合？JDK会在以后版本的标准库中加入对不可变集合的支持么？<a href="http://softwareengineering.stackexchange.com/questions/221762/why-doesnt-java-8-include-immutable-collections">这里</a>可以看到一些有趣的讨论。</p>
+<p>我觉得, 就算是标准库支持了不可变集合, 那也没什么大不了, 由于无法禁绝可变量, Java也许永远不能完全迈入函数式编程的大门。不过这也挺好，Java就是Java，它不会，也没有必要成为另一个<code>Closure</code>或者<code>Scala</code>，我就是我，不一样的烟火~</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2017/02/28/java-guava-2017-2-28-guava-code-analysis-1/" data-id="cmlkuqb2c005xt6lhdi7q2o6f" data-title="Guava 源码笔记系列第一章 -- ImmutableList" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/01/28/miscellaneous-2019-01-28-restart/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          重新出发
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/12/19/scheme-2016-12-19-scheme-interpreter/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Scheme解释器开发札记</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Akka in Scala Part 2 - Akka 并发之道 | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="初识Akka 并发，是计算机世界与生俱来的命题，从CPU的分时处理，到web网站响应多用户请求，无处不彰显着并发的力量。 概言之，并发模型可分为两种，共享可变状态模型和消息传递模型。 多线程是共享可变状态模型的经典例子，上一篇我们已经简要解释了这种模型的问题。 消息传递模型有两种经典的实现，一种是CSP(Communicating Sequential Processes), 例如Golang中">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Akka in Scala Part 2 - Akka 并发之道">
+<meta property="og:url" content="http://demonyangyue.github.io/2016/04/28/akka-2016-4-28-akka-in-scala-2/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="初识Akka 并发，是计算机世界与生俱来的命题，从CPU的分时处理，到web网站响应多用户请求，无处不彰显着并发的力量。 概言之，并发模型可分为两种，共享可变状态模型和消息传递模型。 多线程是共享可变状态模型的经典例子，上一篇我们已经简要解释了这种模型的问题。 消息传递模型有两种经典的实现，一种是CSP(Communicating Sequential Processes), 例如Golang中">
+<meta property="og:locale">
+<meta property="og:image" content="http://demonyangyue.github.io/images/actor-dispatcher.png">
+<meta property="og:image" content="http://demonyangyue.github.io/images/reactive-programming.png">
+<meta property="og:image" content="http://demonyangyue.github.io/images/error-kernel-pattern.png">
+<meta property="article:published_time" content="2016-04-27T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-20T06:28:07.583Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="Akka">
+<meta property="article:tag" content="Scala">
+<meta property="article:tag" content="Cloud Computing">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://demonyangyue.github.io/images/actor-dispatcher.png">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-akka-2016-4-28-akka-in-scala-2" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/04/28/akka-2016-4-28-akka-in-scala-2/" class="article-date">
+  <time class="dt-published" datetime="2016-04-27T16:00:00.000Z" itemprop="datePublished">2016-04-28</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Akka in Scala Part 2 - Akka 并发之道
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="初识akka"><a class="markdownIt-Anchor" href="#初识akka"></a> 初识Akka</h2>
+<p>并发，是计算机世界与生俱来的命题，从CPU的分时处理，到web网站响应多用户请求，无处不彰显着并发的力量。</p>
+<p>概言之，并发模型可分为两种，共享可变状态模型和消息传递模型。</p>
+<p>多线程是共享可变状态模型的经典例子，上一篇我们已经简要解释了这种模型的问题。</p>
+<p>消息传递模型有两种经典的实现，一种是CSP(Communicating Sequential Processes), 例如Golang中的Goroutine和Channel， 另一种是Actor, 例如Erlang的OTP和Scala的Akka。相对于CSP，Actor更加适应分布式环境。</p>
+<span id="more"></span>
+<h2 id="核心概念"><a class="markdownIt-Anchor" href="#核心概念"></a> 核心概念</h2>
+<p>在Akka中，Actor和Future两大核心概念。</p>
+<p>Actor最经典的应用是Erlang， 在Erlang中，Actor对应轻量级进程，在Akka中，Actor对应着JVM中的轻量级对象。传统线程的创建和切换需要消耗大量的内存和机器周期，而Akka可以轻易并发数百万Actor。</p>
+<p>Future源自函数式编程，使我们可以方便地实现异步API。异步API典型的例子是NodeJS, 所有的调用都是异步调用，调用者立即返回，被调用函数在完成之后执行回调函数。异步API在处理大量的并发请求时，比同步API更加优雅和高效。</p>
+<h2 id="akka之道"><a class="markdownIt-Anchor" href="#akka之道"></a> Akka之道</h2>
+<p>上一篇我们提到，传统的并发编程之所以困难，是因为我们使用了错误的工具在错误的层面进行了错误的抽象。</p>
+<p>传统并发模型错误的根源在于<strong>共享可变状态</strong>，Akka如何解决这个问题呢？</p>
+<p>Akka由Scala实现，继承了函数式编程的基因。在函数式编程的世界里，不存在可变量，要获得一个新的值，就需要创建一个新的对象。在纯粹的函数式编程语言如Haskell中，需要用Monad这样的复杂机制来支持副作用。</p>
+<p>Scala折衷了函数式编程和面向对象编程，在Akka中，可变量(var)并没有被完全禁绝，但是被严密地封装在Actor内部：</p>
+<ul>
+<li>要改变Actor的状态， 只能给Actor发送消息，由Actor内部定义的消息处理逻辑来更新状态。</li>
+<li>Actor之间，只能通过消息进行通信，消息本身是不可变量。</li>
+</ul>
+<p>总而言之，在Actor内部，允许存在不可变量，但是不会被共享。在Actor之间，会共享消息，但是不会传递可变量。既避免了传统并发的陷阱，又方便了业务逻辑的实现。</p>
+<h3 id="并发-于actor之内"><a class="markdownIt-Anchor" href="#并发-于actor之内"></a> 并发 —— 于Actor之内</h3>
+<p>在Actor内部，如何同时处理多条消息呢？</p>
+<p>答案是做不到，Actor从不同时处理多条消息，每个Actor逻辑上单线程地一条条处理发送给它的消息，Actor内部实现的是并发而非并行。（参考并发与并行的<a href="https://github.com/forhappy/Cplusplus-Concurrency-In-Practice/blob/master/zh/chapter1-Introduction/1.1%20What%20is%20concurrency.md">区别</a>）</p>
+<p>每个Actor内部，都有一个用于接收和处理消息的邮箱(mailbox)和分发器(dispatcher):</p>
+<p><img src="/images/actor-dispatcher.png" alt="" /></p>
+<ul>
+<li>每次Actor接收到外部消息时，会将它插入mailbox的头部。</li>
+<li>dispatcher会被唤醒，如果Actor空闲，则新消息会被分发给Actor进行处理，否则dispatcher什么也不做。</li>
+<li>每当Actor处理完一条消息，会唤醒dispatcher，如果mailbox此刻非空，dispatcher会分配新的消息给Actor处理。</li>
+<li>虽然每条消息可能会在不同的物理线程被处理，但是任何时刻Actor内部不会有两条消息被同时处理，Actor的消息处理机制在逻辑上是单线程的。</li>
+</ul>
+<h3 id="并行-于actor之外"><a class="markdownIt-Anchor" href="#并行-于actor之外"></a> 并行 —— 于Actor之外</h3>
+<p>既然Actor以单线程的方式处理消息，岂不是要像Python， Ruby那样，无法利用现代计算机的多核来提高性能？</p>
+<p>实则不然，Akka程序中，一切皆Actor，会有许多的Actor被创建来负责不同的任务，这些Actor之间彼此独立，可以在不同的线程中并行运行，底层运用的是JVM的fork-join模型。(参考fork-join与thread pool 的<a href="http://stackoverflow.com/questions/7926864/how-is-the-fork-join-framework-better-than-a-thread-pool">区别</a>)</p>
+<h2 id="性能保证"><a class="markdownIt-Anchor" href="#性能保证"></a> 性能保证</h2>
+<p>整个Akka框架采用反应式编程（Reactive Programming）模型，遵循事件驱动（Event Driven）机制，每个Actor对接收到的消息作出响应。</p>
+<p><img src="/images/reactive-programming.png" alt="" /></p>
+<p>Actor并不独占一个线程，那样设计需要非常昂贵的线程开销，并限制整个系统的并发量。每当Actor处理消息时，会将该消息放到一个空闲的线程中处理，保证了线程使用效率并提高了系统整体的并发性。</p>
+<p>以上是对普通消息的处理，再来看两种极端的例子：</p>
+<ul>
+<li>消息处理逻辑中涉及阻塞IO或者耗时运算。这种情况下，我们可以用Future引入异步处理，让Actor不必阻塞于这条消息，可以继续处理后续消息。</li>
+</ul>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> futureResult = <span class="type">Future</span> &#123; expensive_calculation() &#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>数据库连接(DB Connnection)。建立数据库连接是昂贵的操作，我们不能够为每一条SQL查询新建一个数据库连接。可行的做法是利用Akka的Rounter机制，由一组Actor维护一个数据库连接池，并由一个Router Actor来调度查询请求。</li>
+</ul>
+<h2 id="容错fault-tolerant"><a class="markdownIt-Anchor" href="#容错fault-tolerant"></a> 容错(fault-tolerant)</h2>
+<p>分布式系统中，出错是常态，容错至关重要。</p>
+<p>传统程序中使用异常处理来解决错误，但异常处理有其固有的缺陷，人们总是寄希望于系统抛出异常的时候，能够根据异常的类型采取相应的策略恢复系统运行行。但是现实情况是，异常发生的时候，我们能做的事情并不多，通常是写条日志然后退出。在分布式世界中，由于环境更加复杂，容错面临更加严峻的挑战。</p>
+<h3 id="let-it-crash"><a class="markdownIt-Anchor" href="#let-it-crash"></a> Let it crash</h3>
+<p>目前分布式系统的容错机制，大多借鉴了Erlang “let it crash”的思想，比如Hadoop中的冗余备份(replication), Spark 中的Checkpoint和Linage。“let it crash”的核心理念是，出错是常态，我们不要去试图修复，而是创建一个新的组件。</p>
+<p>如果你的车坏了，通常的想法是会去4S店维修，但是有可能修好，也有可能修不好，有也可能修好了却引发别的部件故障。土豪的做法是 —— 换辆新的。Akka的世界里，我们每个人都是土豪。</p>
+<h3 id="error-kernel-pattern"><a class="markdownIt-Anchor" href="#error-kernel-pattern"></a> Error Kernel Pattern</h3>
+<p>整个Akka系统，被设计成一个树形结构，底层的子Actor由其上一层的父Actor创建并管理。</p>
+<p><img src="/images/error-kernel-pattern.png" alt="" /></p>
+<p>Error kernel pattern的同样来源于Erlang，其核心思想在于，处于上层的Actor承担风险较小的任务，处于底层的Actor承担更加危险的任务，出错之后就&quot;let it crash&quot;。</p>
+<h3 id="可扩展scalable"><a class="markdownIt-Anchor" href="#可扩展scalable"></a> 可扩展(scalable)</h3>
+<p>并行能力，描述的系统的纵向扩展性，即在一个节点内部，可以同时执行任务的数量。</p>
+<p>分布式系统一个重要指标是横向扩展性，即同时在多个节点执行任务的能力。Akka利用Actor Path来实现透明扩展。每个Actor，无论是本地还是远程，都由唯一的地址进行标识。</p>
+<p>本地Actor地址示例：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">akka:<span class="comment">//RedPacket/user/redPacketGenerator</span></span><br></pre></td></tr></table></figure>
+<p>远程Actor地址示例：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">akka:<span class="comment">//RedPacket@&#123;host&#125;:&#123;port&#125;/user/redPacketGenerator</span></span><br></pre></td></tr></table></figure>
+<p>一个Acotr处于本地还是远程，对应用程序是透明的，Akka可以很容易在不同的节点上面创建Actor，实现了整体的高扩展性。</p>
+<h2 id="出发"><a class="markdownIt-Anchor" href="#出发"></a> 出发</h2>
+<p>Akka的原理就介绍到这里，后续会详细介绍Akka的每个模块，并给出详细的代码示例，get your hands dirty!</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2016/04/28/akka-2016-4-28-akka-in-scala-2/" data-id="cmlkuqb1w0000t6lh9783hmou" data-title="Akka in Scala Part 2 - Akka 并发之道" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/04/29/akka-2016-4-29-akka-in-scala-3/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Akka in Scala Part 3 - Actor
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/04/08/akka-2016-4-8-akka-in-scala-1/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Akka in Scala Part 1 - Java dosen&#39;t work</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

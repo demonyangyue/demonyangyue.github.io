@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Rails源码管窥5 - 添加属性方法 | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="引言 这一节我们研究rails MVC 架构中的model部分，rails 中有三种model相关的类型：ActiveModel, ActiveRecord 和 ActiveResource。 ActiveModel实现了和model相关的许多功能，比如validation,ActiveRecord在ActiveModel的基础上，提供了和数据库相关的ORM支持，ActiveResource在A">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Rails源码管窥5 - 添加属性方法">
+<meta property="og:url" content="http://demonyangyue.github.io/2015/06/16/rails-2015-6-16-rails-code-reading-5/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="引言 这一节我们研究rails MVC 架构中的model部分，rails 中有三种model相关的类型：ActiveModel, ActiveRecord 和 ActiveResource。 ActiveModel实现了和model相关的许多功能，比如validation,ActiveRecord在ActiveModel的基础上，提供了和数据库相关的ORM支持，ActiveResource在A">
+<meta property="og:locale">
+<meta property="article:published_time" content="2015-06-15T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-20T06:28:07.587Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="Rails">
+<meta property="article:tag" content="Web">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-rails-2015-6-16-rails-code-reading-5" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/06/16/rails-2015-6-16-rails-code-reading-5/" class="article-date">
+  <time class="dt-published" datetime="2015-06-15T16:00:00.000Z" itemprop="datePublished">2015-06-16</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Rails源码管窥5 - 添加属性方法
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>这一节我们研究rails MVC 架构中的model部分，rails 中有三种model相关的类型：<code>ActiveModel, ActiveRecord 和 ActiveResource</code>。</p>
+<p><code>ActiveModel</code>实现了和model相关的许多功能，比如<code>validation</code>,<code>ActiveRecord</code>在<code>ActiveModel</code>的基础上，提供了和数据库相关的ORM支持，<code>ActiveResource</code>在<code>ActiveModel</code>的基础上，提供了对<code>WebService API</code>的支持。本节我们关注<code>ActiveModel</code>相关的模块。</p>
+<span id="more"></span>
+<h2 id="添加attribute-methods"><a class="markdownIt-Anchor" href="#添加attribute-methods"></a> 添加Attribute Methods</h2>
+<p><code>ActiveModel::AttributeMethods</code>可以给类动态添加属性方法。<br />
+你经常会遇到这样的情况：一个类具有一些属性，你需要为这些属性分别创建名字和功能类似的方法，这些方法名具有相同的前缀或后缀，这时候就可以通过包含<code>ActiveModel::AttributeMethods</code>类型来消除重复。</p>
+<p>来看一个实际的例子：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Person</span></span><br><span class="line">  <span class="keyword">include</span> <span class="title class_">ActiveModel::AttributeMethods</span></span><br><span class="line"></span><br><span class="line">  attribute_method_suffix <span class="string">&#x27;_contrived?&#x27;</span></span><br><span class="line">  attribute_method_prefix <span class="string">&#x27;clear_&#x27;</span></span><br><span class="line">  define_attribute_methods <span class="symbol">:name</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">attr_accessor</span> <span class="symbol">:name</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">def</span> <span class="title function_">attributes</span></span><br><span class="line">    &#123; <span class="string">&#x27;name&#x27;</span> =&gt; <span class="variable">@name</span> &#125;</span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">def</span> <span class="title function_">attribute_contrived?</span>(<span class="params">attr</span>)</span><br><span class="line">    <span class="literal">true</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">def</span> <span class="title function_">clear_attribute</span>(<span class="params">attr</span>)</span><br><span class="line">    send(<span class="string">&quot;<span class="subst">#&#123;attr&#125;</span>=&quot;</span>, <span class="literal">nil</span>)</span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>没有任何显式的定义，我们自动拥有了<code>name_contrived</code>,<code>clear_name</code>等方法，<code>ActiveModel::AttributeMethods</code>是如何实现这样的魔法的呢？让我们到源代码中一探究竟吧。</p>
+<p>先来看看最重要的<code>define_attribute_methods()</code>方法：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">      <span class="keyword">def</span> <span class="title function_">define_attribute_methods</span>(<span class="params">*attr_names</span>)</span><br><span class="line">=&gt;        attr_names.flatten.each &#123; |<span class="params">attr_name</span>| define_attribute_method(attr_name) &#125;</span><br><span class="line">      <span class="keyword">end</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>为每个<code>attribute</code>调用<code>define_attribute_method()</code>方法：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">      <span class="keyword">def</span> <span class="title function_">define_attribute_method</span>(<span class="params">attr_name</span>)</span><br><span class="line">        attribute_method_matchers.each <span class="keyword">do</span> |<span class="params">matcher</span>|</span><br><span class="line">          method_name = matcher.method_name(attr_name)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">unless</span> instance_method_already_implemented?(method_name)</span><br><span class="line">            generate_method = <span class="string">&quot;define_method_<span class="subst">#&#123;matcher.method_missing_target&#125;</span>&quot;</span></span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> respond_to?(generate_method, <span class="literal">true</span>)</span><br><span class="line">              send(generate_method, attr_name)</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">=&gt;            define_proxy_call true, generated_attribute_methods, method_name, matcher.method_missing_target, attr_name.to_s</span><br><span class="line">            <span class="keyword">end</span></span><br><span class="line">          <span class="keyword">end</span></span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">        attribute_method_matchers_cache.clear</span><br><span class="line">      <span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>对于我们上面的例子来说，由于并没有在类中显式定义<code>clear_name()</code>方法，所以<code>instance_method_already_implemented?(method_name)</code>返回<code>false</code>，<br />
+并且由于<code>define_method_clear_attribute()</code>方法也没有定义，实际执行的是<code>define_proxy_call</code>这一行：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">define_proxy_call</span>(<span class="params">include_private, mod, name, send, *extra</span>) <span class="comment">#:nodoc:</span></span><br><span class="line">  defn = <span class="keyword">if</span> name =~ <span class="variable constant_">NAME_COMPILABLE_REGEXP</span></span><br><span class="line">    <span class="string">&quot;def <span class="subst">#&#123;name&#125;</span>(*args)&quot;</span></span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="string">&quot;define_method(:&#x27;<span class="subst">#&#123;name&#125;</span>&#x27;) do |*args|&quot;</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">  extra = (extra.map!(&amp;<span class="symbol">:inspect</span>) &lt;&lt; <span class="string">&quot;*args&quot;</span>).join(<span class="string">&quot;, &quot;</span>)</span><br><span class="line"></span><br><span class="line">  target = <span class="keyword">if</span> send =~ <span class="variable constant_">CALL_COMPILABLE_REGEXP</span></span><br><span class="line">    <span class="string">&quot;<span class="subst">#&#123;<span class="string">&quot;self.&quot;</span> <span class="keyword">unless</span> include_private&#125;</span><span class="subst">#&#123;send&#125;</span>(<span class="subst">#&#123;extra&#125;</span>)&quot;</span></span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="string">&quot;send(:&#x27;<span class="subst">#&#123;send&#125;</span>&#x27;, <span class="subst">#&#123;extra&#125;</span>)&quot;</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">  mod.module_eval <span class="string">&lt;&lt;-RUBY, __FILE__, __LINE__ + 1</span></span><br><span class="line"><span class="string">    <span class="subst">#&#123;defn&#125;</span></span></span><br><span class="line"><span class="string">      <span class="subst">#&#123;target&#125;</span></span></span><br><span class="line"><span class="string">    end</span></span><br><span class="line"><span class="string">  RUBY</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>这里使用代码字符串来实现方法的动态定义，结合我们的例子，这段代码最终会被翻译成：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="built_in">define_method</span>(<span class="symbol">:clear_name</span>) <span class="keyword">do</span> |<span class="params">*args</span>|</span><br><span class="line">  send(<span class="symbol">:clear_attribute</span>, <span class="string">&#x27;name&#x27;</span>)</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>至此我们已经理解了<code>ActiveModel::AttributeMethods</code>动态定义属性方法的内幕。</p>
+<p>神奇的是，当我们在Person类的定义中，注释掉<code>define_attribute_methods :name</code>这一行，依然可以获得<code>clear_name()</code>的定义，这是如何做到的呢？</p>
+<p>我们在源代码中找到了<code>method_missing()</code>这个hook：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">method_missing</span>(<span class="params">method, *args, &amp;block</span>)</span><br><span class="line">  <span class="keyword">if</span> respond_to_without_attributes?(method, <span class="literal">true</span>)</span><br><span class="line">    <span class="variable language_">super</span></span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    match = match_attribute_method?(method.to_s)</span><br><span class="line">    match ? attribute_missing(match, *args, &amp;block) : <span class="variable language_">super</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">attribute_missing</span>(<span class="params">match, *args, &amp;block</span>)</span><br><span class="line">  __send__(match.target, match.attr_name, *args, &amp;block)</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>通过<code>method_missing()</code>,将对<code>#&#123;prefix&#125;#&#123;attr&#125;#&#123;suffix&#125;(*args, &amp;block)</code>的调用转换成了对<code>#&#123;prefix&#125;attribute#&#123;suffix&#125;(#&#123;attr&#125;, *args, &amp;block)</code>的调用，从而找到了对应的方法定义。</p>
+<p>动态添加属性方法就暂且研究到这里，下一节我们将研究ActiveModel中validation实现的机制。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2015/06/16/rails-2015-6-16-rails-code-reading-5/" data-id="cmlkuqb26001yt6lh70a59t3n" data-title="Rails源码管窥5 - 添加属性方法" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/06/17/rails-2015-6-17-rails-code-reading-6/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Rails源码管窥6 - 数据验证
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/06/07/rails-2015-6-7-rails-code-reading-4/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Rails源码管窥4 - 模板缓存</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

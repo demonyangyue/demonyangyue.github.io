@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>spark 中的RDD 和 DAG | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Spark 核心 Spark是继Hadoop之后的下一代分布式大数据处理框架，相对于传统的批处理框架Hadoop，Spark通过可存储在内存中的数据集RDD，以及对流式（streaming）处理的支持，可以获得10到100倍的性能提升。相对于仅支持流式处理的Storm框架，Spark提供了对批处理，流处理，交互式查询，机器学习及图形计算等一系列任务的支持，一站式解决各类大数据分析需求。 每个分布">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spark 中的RDD 和 DAG">
+<meta property="og:url" content="http://demonyangyue.github.io/2016/05/20/spark-2016-5-20-spark-1/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="Spark 核心 Spark是继Hadoop之后的下一代分布式大数据处理框架，相对于传统的批处理框架Hadoop，Spark通过可存储在内存中的数据集RDD，以及对流式（streaming）处理的支持，可以获得10到100倍的性能提升。相对于仅支持流式处理的Storm框架，Spark提供了对批处理，流处理，交互式查询，机器学习及图形计算等一系列任务的支持，一站式解决各类大数据分析需求。 每个分布">
+<meta property="og:locale">
+<meta property="og:image" content="http://demonyangyue.github.io/images/DAG.png">
+<meta property="article:published_time" content="2016-05-19T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-20T06:28:07.588Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="Cloud Computing">
+<meta property="article:tag" content="Spark">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://demonyangyue.github.io/images/DAG.png">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-spark-2016-5-20-spark-1" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/05/20/spark-2016-5-20-spark-1/" class="article-date">
+  <time class="dt-published" datetime="2016-05-19T16:00:00.000Z" itemprop="datePublished">2016-05-20</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      spark 中的RDD 和 DAG
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="spark-核心"><a class="markdownIt-Anchor" href="#spark-核心"></a> Spark 核心</h2>
+<p>Spark是继Hadoop之后的下一代分布式大数据处理框架，相对于传统的批处理框架Hadoop，Spark通过可存储在内存中的数据集RDD，以及对流式（streaming）处理的支持，可以获得10到100倍的性能提升。相对于仅支持流式处理的Storm框架，Spark提供了对批处理，流处理，交互式查询，机器学习及图形计算等一系列任务的支持，一站式解决各类大数据分析需求。</p>
+<p>每个分布式框架需要解决分布式环境中天然的技术难题，比如并行效率，出错恢复和一致性等问题。分布式框架本身需要精巧的设计，但是对使用框架的用户来说，需要实现的客户端代码是比较简单直接的，无非是对数据集合的map, reduce, filter, group, join等一系列操作。</p>
+<p>然而要实现高效的Spark应用，需要用户对数据在物理节点上的存取，在网络间的传递，以及任务的执行流程有清晰的理解，RDD和DAG是需要掌握的两个核心概念。</p>
+<span id="more"></span>
+<h2 id="rdd"><a class="markdownIt-Anchor" href="#rdd"></a> RDD</h2>
+<h3 id="概念"><a class="markdownIt-Anchor" href="#概念"></a> 概念</h3>
+<p>RDD(resilient distributed datasets, 弹性数据集)，是一组分布存储于多个数据节点，可执行并行操作的数据集合。RDD是Spark的核心抽象，其主要特点为：</p>
+<ul>
+<li>
+<p>不可变性（immutable）</p>
+<p>RDD一旦生成，其内容是不可变的，只会基于已有的RDD生成新的RDD。不可变性是函数编程给分布式世界带来的最宝贵财富，是征服分布式环境中的并发，容错等问题的利器。</p>
+</li>
+<li>
+<p>分布式(distributed)</p>
+<p>集合是函数式编程中的主要数据结构，Spark将其推广到了分布式环境，利用现有的分布式数据存储框架(HDFS, S3)等，将数据存储于集群的多个节点，方便了任务并行和数据容错。</p>
+</li>
+<li>
+<p>并行(parallel exection)</p>
+<p>基于特定的分区函数，Spark将RDD存储到多个分区(Partition)， 实际任务执行时，为每个分区起一个线程并执行相应的计算逻辑，通过并行提高了任务执行的效率。</p>
+</li>
+</ul>
+<h3 id="程序示例"><a class="markdownIt-Anchor" href="#程序示例"></a> 程序示例</h3>
+<p>Spark应用中主要做的事情就是将一个RDD变换成另一个RDD，举一个实际的代码示例：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">object</span> <span class="title">WordCount</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">main</span></span>(args: <span class="type">Array</span>[<span class="type">String</span>]) &#123;</span><br><span class="line">    <span class="keyword">val</span> conf = <span class="keyword">new</span> <span class="type">SparkConf</span>().setAppName(<span class="string">&quot;wordCont&quot;</span>)</span><br><span class="line">    <span class="keyword">val</span> sc = <span class="keyword">new</span> <span class="type">SparkContext</span>(conf)</span><br><span class="line">    <span class="keyword">val</span> input =  sc.textFile(args(<span class="number">0</span>))</span><br><span class="line">    <span class="comment">// filter empty lines.</span></span><br><span class="line">    <span class="keyword">val</span> lines = input.filter(line =&gt; line.size &gt; <span class="number">0</span>)</span><br><span class="line">    <span class="comment">// Split input lines into words.</span></span><br><span class="line">    <span class="keyword">val</span> words = lines.flatMap(line =&gt; line.split(<span class="string">&quot; &quot;</span>))</span><br><span class="line">    <span class="comment">// Transform into pairs and count.</span></span><br><span class="line">    <span class="keyword">val</span> counts = words.map(word =&gt; (word, <span class="number">1</span>)).reduceByKey&#123;<span class="keyword">case</span> (x, y) =&gt; x + y&#125;</span><br><span class="line">    <span class="comment">//Output the total count, causing evaluation</span></span><br><span class="line">    println(counts.count() + <span class="string">&quot; diffrent words in total. &quot;</span>)</span><br><span class="line">    sc.stop()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>如果在<code>spark-shell</code>里执行<code>val input = sc.textFile(&quot;README.md&quot;)</code>, 可以看到<code>input</code>的类型为<code>org.apache.spark.rdd.RDD[String]</code>, 事实上<code>input</code>, <code>words</code> 及 <code>counts</code>这些由transformation操作生成的对象，都是RDD类型，基于RDD，Spark提供了一系列机制来加速任务的执行。</p>
+<h3 id="加速原理"><a class="markdownIt-Anchor" href="#加速原理"></a> 加速原理</h3>
+<h4 id="tranformation-和-action"><a class="markdownIt-Anchor" href="#tranformation-和-action"></a> tranformation 和 action</h4>
+<p><code>transformation</code> 的输入是RDD，输出也是RDD。<code>action</code>的输入是RDD，输出是一个值，通常是在Spark程序的末尾被调用，得到一个计算结果。</p>
+<p><code>transformation</code>和<code>action</code>最大的区别在于，<code>transformation</code> 遵循缓式计算(lazy evaluation), 程序内部执行<code>tranformation</code>调用之后，并不立即进行计算，直到某个<code>action</code>被调用，才会进行真正的计算。结合下文提到的DAG，优化了程序的执行效率。</p>
+<p>Spark中大部分API提供的都是<code>transformation</code>操作，如代码示例中的<code>map</code>, <code>filter</code> 及 <code>flatmap</code>, 少数API提供<code>action</code>操作，如<code>count</code> 和 <code>reduce</code>。</p>
+<h4 id="缓存cache"><a class="markdownIt-Anchor" href="#缓存cache"></a> 缓存(cache)</h4>
+<p>每一次<code>action</code>调用，Spark都会从最初的输入RDD开始，重新执行一遍所有的<code>tranformation</code>, 对于批处理任务，这样做固然没有问题，但是对于反复操作操作同一数据的交互式(interactive)任务, 重复执行相同的计算显得很低效。</p>
+<p>Spark提供缓存API来解决这一问题，用户可以通过<code>cache()</code>或<code>persist()</code>方法，将中间计算结果缓存到内存或者硬盘，下次执行相同计算时，可直接读取缓存来提高效率。<code>persist()</code>和<code>cache()</code>的区别在于，<code>persist()</code>提供了更多的<a href="http://spark.apache.org/docs/latest/programming-guide.html#rdd-persistence">参数</a>，来支持不同级别的缓存机制。</p>
+<h4 id="分区partition"><a class="markdownIt-Anchor" href="#分区partition"></a> 分区(partition)</h4>
+<p>Spark按照分区函数(通常是哈希函数)，将RDD数据集切分成多个分区，分布到多个物理节点。</p>
+<p>Spark 提供了一系列的API，以分区为基本物理单元进行数据存取和计算。一些昂贵的操作比如创建数据库连接，为每个分区建立一个显然比为每个数据对象建立连接一个高效得多。</p>
+<h3 id="灾备原理"><a class="markdownIt-Anchor" href="#灾备原理"></a> 灾备原理</h3>
+<p>分布式环境中，节点失效是常态，数据备份和出错恢复是每一个分布式框架必须处理的问题。基于RDD，Spark 对数据灾备提供了一系列支持：</p>
+<h4 id="血统lineage"><a class="markdownIt-Anchor" href="#血统lineage"></a> 血统(lineage)</h4>
+<p>每个RDD都是由最初的输入RDD,经过一系列<code>tranformation</code>生成的，Spark记录了这一系列<code>transformation</code>构成的变换图谱，称之为RDD的<code>lineage</code>。用户可以调用RDD的<code>toDebugString()</code>方法打印出<code>lineage</code>。如果缓存的RDD发生了数据丢失，Spark可以根据<code>lineage</code>，重新计算出该RDD。</p>
+<h4 id="副本replica"><a class="markdownIt-Anchor" href="#副本replica"></a> 副本(replica)</h4>
+<p>当然原始输入数据也可能发生丢失，Spark依赖副本来处理这种情况。很多存储系统如<code>HDFS</code> 或 <code>S3</code>, 本身就存储了副本，而对于诸如并未提供副本机制的本地文件系统，可以在应用程序中让Spark帮助我们存储备份。</p>
+<h2 id="dag"><a class="markdownIt-Anchor" href="#dag"></a> DAG</h2>
+<p>RDD是对计算对象的抽象，DAG是对计算过程的抽象。DAG(directed acyclic graph， 有向无环图), 描述了任务执行的拓扑结构，代表了从输入RDD到结果RDD的变换关系。</p>
+<h3 id="narrow-transformation-与-wide-transformation"><a class="markdownIt-Anchor" href="#narrow-transformation-与-wide-transformation"></a> narrow transformation 与 wide transformation</h3>
+<p>Spark 将那些需要在节点间传输数据的tranformation 称为 <code>wide transformation</code>, 如 <code>reduceByKey</code>, <code>join</code> 这类 shuffle 操作。 相应的，可以在单一节点完成的操作称之为 <code>narrow transformation</code>, 如 <code>map</code> 和 <code>filter</code>, Spark 可以针对<code>narrow transformation</code>做优化，将一组<code>narrow transformation</code>合并执行。</p>
+<h3 id="job-stage-与-task"><a class="markdownIt-Anchor" href="#job-stage-与-task"></a> job, stage 与 task</h3>
+<p>按计算步骤的粒度，Saprk提供了job, stage 和 task 三层概念抽象:</p>
+<ul>
+<li>
+<p>task - Spark中最小的任务执行单元，每个<code>tranformation</code>操作，都会被翻译成相应的task，由executor应用到相应的RDD上。</p>
+</li>
+<li>
+<p>stage - 一组由<code>narrow transformation</code>构成的task，被合并成一个stage，由于不需要在节点间传输数据，stage可以被高效执行。</p>
+</li>
+<li>
+<p>job - 每一个<code>action</code>在实际执行时，对应着一个job，一个job可以包含多个stage。</p>
+</li>
+</ul>
+<h3 id="程序示例-2"><a class="markdownIt-Anchor" href="#程序示例-2"></a> 程序示例</h3>
+<p>上文中的单词计数程序，对应的DAG为：</p>
+<p><img src="/images/DAG.png" alt="" /></p>
+<p>用户也可以通过 <a href="http://spark.apache.org/docs/latest/monitoring.html">Saprk Web Interface</a> 获得类似的DAG视图。</p>
+<h2 id="小结"><a class="markdownIt-Anchor" href="#小结"></a> 小结</h2>
+<p>相对于上一代分布式计算框架Hadoop，Spark基于RDD和DAG，对分布式任务处理提供了更加高效和灵活的支持。深入掌握RDD和DAG的原理，可以为理解整个Spark框架奠定坚实的基础。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2016/05/20/spark-2016-5-20-spark-1/" data-id="cmlkuqb27002et6lh7q8v4spy" data-title="spark 中的RDD 和 DAG" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/08/04/javascript-2016-8-4-jquery-source-analysis-0/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          jQuery 源码精粹0 -- 引言
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/05/10/akka-2016-5-10-akka-in-scala-6/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Akka in Scala Part 6 - Router</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

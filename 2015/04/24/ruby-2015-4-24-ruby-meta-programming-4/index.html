@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Ruby元编程系列4 – 单件方法和模块 | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="单件方法 单件方法可能是Ruby元编程中最重要的一个概念，通过单件方法，可以给单个对象增加方法。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ruby元编程系列4 – 单件方法和模块">
+<meta property="og:url" content="http://demonyangyue.github.io/2015/04/24/ruby-2015-4-24-ruby-meta-programming-4/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="单件方法 单件方法可能是Ruby元编程中最重要的一个概念，通过单件方法，可以给单个对象增加方法。">
+<meta property="og:locale">
+<meta property="og:image" content="http://demonyangyue.github.io/images/singleton_method.jpg">
+<meta property="og:image" content="http://demonyangyue.github.io/images/class_method.jpg">
+<meta property="article:published_time" content="2015-04-23T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-20T06:28:07.588Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="Ruby">
+<meta property="article:tag" content="Meta Programming">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://demonyangyue.github.io/images/singleton_method.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-ruby-2015-4-24-ruby-meta-programming-4" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/04/24/ruby-2015-4-24-ruby-meta-programming-4/" class="article-date">
+  <time class="dt-published" datetime="2015-04-23T16:00:00.000Z" itemprop="datePublished">2015-04-24</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Ruby元编程系列4 – 单件方法和模块
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="单件方法"><a class="markdownIt-Anchor" href="#单件方法"></a> 单件方法</h2>
+<p>单件方法可能是Ruby元编程中最重要的一个概念，通过单件方法，可以给单个对象增加方法。</p>
+<span id="more"></span>
+<p>首先需要指出的是，这里的“单件”和设计模式中的“单件模式”没有任何关系，不要混淆它们。</p>
+<p>假设现在需要给一个字符串对象添加一个greet 方法，我们可以有两种解决方案：</p>
+<ol>
+<li>打开String 类，添加greet方法</li>
+<li>给字符串对象添加greet单件方法</li>
+</ol>
+<p>第一种方法虽然可以达到我们的目的，但是会污染整个String类，是得其它的String类型的对象也拥有了greet方法。</p>
+<p>我们来看看更优雅的第二种方案：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/ruby</span></span><br><span class="line"></span><br><span class="line">name = <span class="string">&quot;yue&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">name</span>.greet</span><br><span class="line">   <span class="string">&quot;hi &quot;</span> + <span class="variable language_">self</span> </span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">puts name.greet <span class="comment"># =&gt; &quot;hi yue&quot;</span></span><br></pre></td></tr></table></figure>
+<p>是不是很酷？<br />
+聪明的你可能会问，在对象模型内部，单件方法是放在哪里的呢？</p>
+<p>一定不会是在对象所属的类中，因为那样的话该方法会被所有同类型的对象所拥有，不再专属于这个对象了。<br />
+为了回答这个问题，让我们一起揭开单件方法的神秘面纱吧。</p>
+<p>其实，在类型继承链的底部，Ruby偷偷的藏了一个单件类（也称作eigenclass）， 单件方法被放在单件类中。</p>
+<p>单件类是没有名字的，我们暂且用#name来标记它，如果你想知道ruby在私下是如何称呼单件类的，可以通过一种特殊的基于class关键字的语法，来进入到单件类的内部：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">name = <span class="string">&quot;yue&quot;</span></span><br><span class="line"></span><br><span class="line">singleton_class = <span class="keyword">class</span> &lt;&lt; name</span><br><span class="line">    <span class="variable language_">self</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line">puts singleton_class <span class="comment"># =&gt; #&lt;Class:#&lt;String:0x00000002813ab0&gt;&gt; </span></span><br></pre></td></tr></table></figure>
+<p>很绕口的名字对不对？</p>
+<p>我们现在可以画出实际的内部对象模型：</p>
+<p><img src="/images/singleton_method.jpg" alt="" /></p>
+<h2 id="类方法"><a class="markdownIt-Anchor" href="#类方法"></a> 类方法</h2>
+<p>之前我们已经讲过，类有两重身份，第二种身份是说类本身也是一个对象，是Class类型的一个实例，那么在这个对象上定义单件方法，我们就能够获得专属于这个类的类方法。</p>
+<p>来看一个最简单的示例：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/ruby</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Nerd</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">self</span>.greet</span><br><span class="line">        puts <span class="string">&quot;hello world&quot;</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="title class_">Nerd</span>.greet</span><br></pre></td></tr></table></figure>
+<p>对象模型：</p>
+<p><img src="/images/class_method.jpg" alt="" /></p>
+<h2 id="类宏"><a class="markdownIt-Anchor" href="#类宏"></a> 类宏</h2>
+<p>对于类方法，Ruby提供了一种语法糖，形式类似于C语言中的宏，我们把它称之为类宏。</p>
+<p>Ruby对于属性的方法控制，提供了两个拟态方法：attr_reader 和attr_accessor, 这是类宏的典型应用，我们在之前的代码中已经看到了它们的使用方式：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Nerd</span></span><br><span class="line">    <span class="built_in">attr_reader</span> <span class="symbol">:name</span></span><br><span class="line">    <span class="built_in">attr_accessor</span> <span class="symbol">:age</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>它们是怎么实现的呢？我们可以自己用代码来模拟一下：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/ruby</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Nerd</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">self</span>.my_attr_accessor(name)</span><br><span class="line">       </span><br><span class="line">        <span class="built_in">define_method</span>(<span class="string">&quot;<span class="subst">#&#123;name&#125;</span>&quot;</span>) <span class="keyword">do</span> </span><br><span class="line">           puts <span class="string">&quot;define getter: <span class="subst">#&#123;name&#125;</span>&quot;</span> </span><br><span class="line">           instance_variable_get(<span class="string">&quot;@<span class="subst">#&#123;name&#125;</span>&quot;</span>)</span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">        <span class="built_in">define_method</span>(<span class="string">&quot;<span class="subst">#&#123;name&#125;</span>=&quot;</span>) <span class="keyword">do</span> |<span class="params">val</span>| </span><br><span class="line">           puts <span class="string">&quot;define setter: <span class="subst">#&#123;name&#125;</span>=&quot;</span> </span><br><span class="line">           instance_variable_set(<span class="string">&quot;@<span class="subst">#&#123;name&#125;</span>&quot;</span>, val)</span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">    my_attr_accessor <span class="symbol">:name</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">initialize</span>()</span><br><span class="line">       <span class="variable">@name</span> = <span class="string">&quot;yang&quot;</span> </span><br><span class="line">       <span class="variable">@age</span> = <span class="number">25</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>看到了吧， Ruby元编程真是太酷了！</p>
+<h2 id="模块"><a class="markdownIt-Anchor" href="#模块"></a> 模块</h2>
+<p>Ruby 模块（Module）本质上是类的特例，相比于类，模块没有定义new方法，所以不能被实例化，没有定义superclass（）方法，所以不能被继承：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">Class</span>.new.methods - <span class="title class_">Module</span>.new.methods <span class="comment">#=&gt; [:allocate, :new, :superclass]</span></span><br></pre></td></tr></table></figure>
+<p>当在类定义中include一个模块时，模块的方法会成为类的实例方法，当在类中extend一个模块时，模块的方法会成为类的类方法。</p>
+<p>那么如果我在模块中定义了一些方法，希望其中一部分成为类的实例方法，另外一部分成为类的方法，应该怎么做呢？需要定义两个模块么？</p>
+<p>强大的Ruby元编程提供了一种称之为类扩展混入的技术，代码示例;</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/ruby</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">module</span> <span class="title class_">MyMixin</span></span><br><span class="line">    <span class="keyword">module</span> <span class="title class_">ClassMethods</span></span><br><span class="line">        <span class="keyword">def</span> <span class="title function_">class_method</span></span><br><span class="line">            puts <span class="string">&quot;this in a class method&quot;</span> </span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">module</span> <span class="title class_">InstanceMethods</span></span><br><span class="line">        <span class="keyword">def</span> <span class="title function_">instance_method</span></span><br><span class="line">            puts <span class="string">&quot;this is a instance method&quot;</span> </span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">self</span>.included(receiver)</span><br><span class="line">        receiver.<span class="keyword">extend</span>         <span class="title class_">ClassMethods</span></span><br><span class="line">        receiver.send <span class="symbol">:include</span>, <span class="title class_">InstanceMethods</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>当某个类include该模块时，self.included这个hook方法被触发，ClassMethods中定义的方法会作为类方法被加入，InstanceMethods中定义的方法会作为实例方法被加入。</p>
+<p>Ruby元编程系列就先讲这么多，后续会讲元编程在Rails代码中的应用，敬请期待！</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2015/04/24/ruby-2015-4-24-ruby-meta-programming-4/" data-id="cmlkuqb28002st6lhgrhyag2e" data-title="Ruby元编程系列4 – 单件方法和模块" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/05/27/rails-2015-5-27-rails-code-reading-1/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Rails源码管窥1 - 工具篇
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/04/23/ruby-2015-4-23-ruby-meta-programming-3/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Ruby元编程系列3 – 作用域</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

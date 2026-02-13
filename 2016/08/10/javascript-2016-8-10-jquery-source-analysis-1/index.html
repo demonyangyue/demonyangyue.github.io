@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>jQuery 源码精粹1 -- 核心模块 | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="引言 核心模块core.js是jquery.js第一个包含的模块，浏览jquery源码文件，可以发现大部分文件都把它作为依赖。作为jquery最重要的模块，它到底做了哪些事情呢？">
+<meta property="og:type" content="article">
+<meta property="og:title" content="jQuery 源码精粹1 -- 核心模块">
+<meta property="og:url" content="http://demonyangyue.github.io/2016/08/10/javascript-2016-8-10-jquery-source-analysis-1/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="引言 核心模块core.js是jquery.js第一个包含的模块，浏览jquery源码文件，可以发现大部分文件都把它作为依赖。作为jquery最重要的模块，它到底做了哪些事情呢？">
+<meta property="og:locale">
+<meta property="article:published_time" content="2016-08-09T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-20T06:28:07.585Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="jQuery">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-javascript-2016-8-10-jquery-source-analysis-1" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/08/10/javascript-2016-8-10-jquery-source-analysis-1/" class="article-date">
+  <time class="dt-published" datetime="2016-08-09T16:00:00.000Z" itemprop="datePublished">2016-08-10</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      jQuery 源码精粹1 -- 核心模块
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>核心模块<code>core.js</code>是<code>jquery.js</code>第一个包含的模块，浏览<code>jquery</code>源码文件，可以发现大部分文件都把它作为依赖。作为<code>jquery</code>最重要的模块，它到底做了哪些事情呢？</p>
+<span id="more"></span>
+<h2 id="corejs"><a class="markdownIt-Anchor" href="#corejs"></a> core.js</h2>
+<h3 id="片段一"><a class="markdownIt-Anchor" href="#片段一"></a> 片段一</h3>
+<p><code>core.js</code>首先声明了一系列的依赖模块：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">define</span>( [</span><br><span class="line">	<span class="string">&quot;./var/arr&quot;</span>,</span><br><span class="line">	<span class="string">&quot;./var/document&quot;</span>,</span><br><span class="line">	<span class="string">&quot;./var/getProto&quot;</span>,</span><br><span class="line">	<span class="string">&quot;./var/slice&quot;</span>,</span><br><span class="line">	<span class="string">&quot;./var/concat&quot;</span>,</span><br><span class="line">	<span class="string">&quot;./var/push&quot;</span>,</span><br><span class="line">	<span class="string">&quot;./var/indexOf&quot;</span>,</span><br><span class="line">	<span class="string">&quot;./var/class2type&quot;</span>,</span><br><span class="line">	<span class="string">&quot;./var/toString&quot;</span>,</span><br><span class="line">	<span class="string">&quot;./var/hasOwn&quot;</span>,</span><br><span class="line">	<span class="string">&quot;./var/fnToString&quot;</span>,</span><br><span class="line">	<span class="string">&quot;./var/ObjectFunctionString&quot;</span>,</span><br><span class="line">	<span class="string">&quot;./var/support&quot;</span>,</span><br><span class="line">	<span class="string">&quot;./core/DOMEval&quot;</span></span><br><span class="line">], <span class="keyword">function</span>(<span class="params"> arr, <span class="variable language_">document</span>, getProto, slice, concat, push, indexOf,</span></span><br><span class="line"><span class="params">	class2type, toString, hasOwn, fnToString, ObjectFunctionString,</span></span><br><span class="line"><span class="params">	support, DOMEval </span>) &#123;...&#125; );</span><br></pre></td></tr></table></figure>
+<p>这些模块提供了对通用功能的支持，通常比较简短，比如<code>var/document</code>的内容为：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">define</span>( <span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">	<span class="string">&quot;use strict&quot;</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="variable language_">window</span>.<span class="property">document</span>;</span><br><span class="line">&#125; );</span><br></pre></td></tr></table></figure>
+<p><code>define([&quot;./var/document&quot;])</code>在编译时，会被替换成<code>var document = window.document;</code>。</p>
+<p>在jQuery每个源文件的开头，都会看到类似的<code>define</code>语句，以优雅的形式定义了所需的依赖模块。</p>
+<h3 id="片段二"><a class="markdownIt-Anchor" href="#片段二"></a> 片段二：</h3>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span></span><br><span class="line">	version = <span class="string">&quot;3.1.0&quot;</span>,</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Define a local copy of jQuery</span></span><br><span class="line">	jQuery = <span class="keyword">function</span>(<span class="params"> selector, context </span>) &#123;</span><br><span class="line"></span><br><span class="line">		<span class="comment">// The jQuery object is actually just the init constructor &#x27;enhanced&#x27;</span></span><br><span class="line">		<span class="comment">// Need init if jQuery is called (just allow error to be thrown if not included)</span></span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> jQuery.<span class="property">fn</span>.<span class="title function_">init</span>( selector, context );</span><br><span class="line">	&#125;,</span><br></pre></td></tr></table></figure>
+<p>jQuery的API调用形式是<code>$(selector).action(props)</code>, 从这段代码可以看出，<code>$(selector)</code>返回的<code>jQuery object</code>,实际上是一个<code>jQuery.fn.init</code>实例，通过阅读<code>core/init.js</code>文件，我们可以知道在初始化实例时，解析传入的<code>selector</code>参数，根据不同的<code>selector</code>形式，生成相应的<code>jQuery object</code>(具体逻辑在下一篇分析), <code>jQuery object</code>是一个类似数组的对象，代表了一组被选中的DOM节点的集合。</p>
+<h3 id="片段三"><a class="markdownIt-Anchor" href="#片段三"></a> 片段三</h3>
+<p><code>core.js</code>下一个代码片段:</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">jQuery.<span class="property">fn</span> = jQuery.<span class="property"><span class="keyword">prototype</span></span> = &#123;</span><br><span class="line">	<span class="attr">each</span>: <span class="keyword">function</span>(<span class="params"></span>) &#123;...&#125;,</span><br><span class="line">	<span class="attr">map</span>: <span class="keyword">function</span>(<span class="params"></span>) &#123;...&#125;,</span><br><span class="line">	<span class="attr">first</span>: <span class="keyword">function</span>(<span class="params"></span>)&#123;...&#125;,</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过jQuery原型，定义了一些列诸如<code>each</code>,<code>map</code>,<code>first</code>等通用方法，支持类似数组的操作，所有的<code>jQuery object</code>都可以调用这些方法。</p>
+<p>向<code>jQuery.fn</code>添加方法定义，是<code>jQuery</code>各个模块以及用户自定义plugin, 扩展<code>jQuery</code>对象的标准做法。</p>
+<p>同时在<code>src/init.js</code>的末尾，有这段代码：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">init.<span class="property"><span class="keyword">prototype</span></span> = jQuery.<span class="property">fn</span>;</span><br></pre></td></tr></table></figure>
+<p>于是<code>jQuery object</code>实际和<code>jQuery.fn.init object</code>实际是等价的，正如我们在片段二所提到的。</p>
+<h3 id="片段四"><a class="markdownIt-Anchor" href="#片段四"></a> 片段四</h3>
+<p><code>core.js</code>末尾的代码片段：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">jQuery.<span class="property">extend</span> = jQuery.<span class="property">fn</span>.<span class="property">extend</span> = <span class="keyword">function</span>(<span class="params"></span>) &#123;...&#125;;</span><br><span class="line">jQuery.<span class="title function_">extend</span>(&#123;</span><br><span class="line">	<span class="attr">error</span>: <span class="keyword">function</span>(<span class="params"> </span>) &#123;&#125;,</span><br><span class="line">	<span class="attr">noop</span>: <span class="keyword">function</span>(<span class="params"></span>) &#123;&#125;,</span><br><span class="line">	<span class="attr">isFunction</span>: <span class="keyword">function</span>(<span class="params"></span>) &#123;&#125;,</span><br><span class="line">	<span class="attr">isArray</span>: <span class="keyword">function</span>(<span class="params"></span>) &#123;&#125;,</span><br><span class="line">	...</span><br><span class="line">&#125;)；</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>在<code>jQuery.extend</code>代码内部，会迭代变量传入参数的每个属性，并将其赋值到<code>jQuery</code>命名空间，如果将<code>deep</code>参数设为<code>true</code>,则会递归遍历传入参数的所有属性。</p>
+<p><code>jQuery extend</code>很像类方法，可以让用户直接在<code>jQuery</code>命名空间定义全局方法，并以<code>$.function_name()</code>的形式进行调用。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2016/08/10/javascript-2016-8-10-jquery-source-analysis-1/" data-id="cmlkuqb230012t6lhf54ybxlo" data-title="jQuery 源码精粹1 -- 核心模块" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/08/11/javascript-2016-8-11-jquery-source-analysis-2/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          jQuery 源码精粹2 -- 选择器
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/08/04/javascript-2016-8-4-jquery-source-analysis-0/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">jQuery 源码精粹0 -- 引言</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

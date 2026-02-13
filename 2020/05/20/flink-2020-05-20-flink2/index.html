@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Flink原理、架构与实现Part2 - 原理与架构 | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="上一篇我们提到，Flink是一个准确、实时、高吞吐的流式数据处理系统，那么它是如何实现的呢？本篇博客描述Blink的原理和架构。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Flink原理、架构与实现Part2 - 原理与架构">
+<meta property="og:url" content="http://demonyangyue.github.io/2020/05/20/flink-2020-05-20-flink2/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="上一篇我们提到，Flink是一个准确、实时、高吞吐的流式数据处理系统，那么它是如何实现的呢？本篇博客描述Blink的原理和架构。">
+<meta property="og:locale">
+<meta property="og:image" content="http://demonyangyue.github.io/images/flink/bounded-unbounded.png">
+<meta property="og:image" content="http://demonyangyue.github.io/images/flink/processes.svg">
+<meta property="og:image" content="http://demonyangyue.github.io/images/flink/slot_sharing.svg">
+<meta property="og:image" content="http://demonyangyue.github.io/images/flink/flink-network-stack2.png">
+<meta property="og:image" content="http://demonyangyue.github.io/images/flink/jobgraph.jpg">
+<meta property="og:image" content="http://demonyangyue.github.io/images/flink/stream_transformation.png">
+<meta property="og:image" content="http://demonyangyue.github.io/images/flink/executiongraph.jpg">
+<meta property="og:image" content="http://demonyangyue.github.io/images/flink/flink_task_data.jpeg">
+<meta property="og:image" content="http://demonyangyue.github.io/images/flink/event_ingestion_processing_time.svg">
+<meta property="og:image" content="http://demonyangyue.github.io/images/flink/processing_time_event_time.jpeg">
+<meta property="og:image" content="http://demonyangyue.github.io/images/flink/windowing.jpeg">
+<meta property="og:image" content="http://demonyangyue.github.io/images/flink/watermark.jpg">
+<meta property="og:image" content="http://demonyangyue.github.io/images/flink/retracting.jpeg">
+<meta property="og:image" content="http://demonyangyue.github.io/images/flink/streambarrier-1.jpeg">
+<meta property="og:image" content="http://demonyangyue.github.io/images/flink/operatorcheckpoints-1.jpeg">
+<meta property="og:image" content="http://demonyangyue.github.io/images/flink/two-phase-commit.jpeg">
+<meta property="og:image" content="http://demonyangyue.github.io/images/flink/tcp-flow-control.png">
+<meta property="og:image" content="http://demonyangyue.github.io/images/flink/credit-flow-control.png">
+<meta property="og:image" content="http://demonyangyue.github.io/images/flink/stream_batch_old.jpg">
+<meta property="og:image" content="http://demonyangyue.github.io/images/flink/stream_batch_new.png">
+<meta property="article:published_time" content="2020-05-19T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-20T06:28:07.584Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="Cloud Computing">
+<meta property="article:tag" content="Flink">
+<meta property="article:tag" content="Streaming System">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://demonyangyue.github.io/images/flink/bounded-unbounded.png">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-flink-2020-05-20-flink2" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/05/20/flink-2020-05-20-flink2/" class="article-date">
+  <time class="dt-published" datetime="2020-05-19T16:00:00.000Z" itemprop="datePublished">2020-05-20</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Flink原理、架构与实现Part2 - 原理与架构
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>上一篇我们提到，Flink是一个准确、实时、高吞吐的流式数据处理系统，那么它是如何实现的呢？本篇博客描述Blink的原理和架构。</p>
+<span id="more"></span>
+<h2 id="需要解决的问题"><a class="markdownIt-Anchor" href="#需要解决的问题"></a> 需要解决的问题</h2>
+<h3 id="批和流的区别"><a class="markdownIt-Anchor" href="#批和流的区别"></a> 批和流的区别</h3>
+<p>Flink官网的这张图，清晰地解释了批和流的区别。</p>
+<p><img src="/images/flink/bounded-unbounded.png" alt="" /></p>
+<p>批数据是在时间上有界的数据。批处理场景，需要处理的数据量是确定的。</p>
+<p>流数据是在时间上无界的数据。相对于批数据，流数据增加了一个新的<strong>时间维度</strong>，数据处理的难度也相应提升。</p>
+<h3 id="流处理和批处理的共性问题"><a class="markdownIt-Anchor" href="#流处理和批处理的共性问题"></a> 流处理和批处理的共性问题</h3>
+<p>流处理和批处理，需要处理的对象都是大数据，需要解决大数据处理的共性问题。</p>
+<h4 id="cap限制"><a class="markdownIt-Anchor" href="#cap限制"></a> CAP限制</h4>
+<p>CAP定理是大数据处理的基础理论，对一个分布式计算系统，C(<code>Consistency</code> 一致性)、A(<code>Availability</code> 可用性)、P(<code>Partition tolerance</code> 分区容忍性)不能同时满足。</p>
+<p>因为大数据处理是在分布式环境下执行的，所以P是默认要满足的。那么C和A之间，就只能满足一个，需要做出权衡取舍。<br />
+对于批处理系统，追求的是C，保证结果的正确性，牺牲了A，因为批处理对延时不敏感，几分钟甚至几小时之内获得计算结果都可以。</p>
+<p>对于流处理系统，问题就比较棘手，首先要保证C，用户对数据处理的基本需求，是要获得正确的结果。但是A也不能牺牲，因为流式数据处理天然有实时性的需求，较高的数据延时会严重影响用户体验。受CAP定理的约束，C和A是不可兼得的，于是在流式处理系统中，问题被定义成:在保证准确性的前提下，尽可能地追求实时性。</p>
+<h4 id="任务调度"><a class="markdownIt-Anchor" href="#任务调度"></a> 任务调度</h4>
+<p>分布式处理系统，通常采用master-slave架构进行任务调度，包含一个master节点和多个slave节点。master节点负责分配任务，并管理任务的执行信息，slave节点负责执行具体的任务。如何让数据处理任务高效地执行，是每个分布式处理系统都需要考虑的问题。</p>
+<h4 id="资源管理"><a class="markdownIt-Anchor" href="#资源管理"></a> 资源管理</h4>
+<p>分布式集群中，通常同时运行着许多任务。如何高效地利用集群中的CPU、内存、带宽，保证任务能够获取到所需的资源，需要对资源进行合理地抽象和管理。</p>
+<h3 id="流处理的特有问题"><a class="markdownIt-Anchor" href="#流处理的特有问题"></a> 流处理的特有问题</h3>
+<p>相对于批处理，流处理需要处理的数据，增加一个新的维度 —— 时间，流处理系统需要考虑时间维度带来的额外复杂性。</p>
+<h4 id="正确性语义"><a class="markdownIt-Anchor" href="#正确性语义"></a> 正确性语义</h4>
+<p>对于批处理来说，将输入数据批量读取，处理之后进行合并，就可以得到正确结果。但是对于流数据处理，问题变得更加复杂。<br />
+流处理系统源源不断地读取输入，需要源源不断地输出计算结果，并保证输出的结果总是正确的，哪怕在输入数据乱序或者迟到的情况下，也要支持输出正确的结果。</p>
+<h4 id="出错处理"><a class="markdownIt-Anchor" href="#出错处理"></a> 出错处理</h4>
+<p>批出理的出错处理相对简单，在完整的数据集上重跑出错的任务即可。流数据的出错处理则不能这样做，因为输入数据是源源不断的，不存在&quot;完整的数据集&quot;。<br />
+对流数据处理系统来说，要进行容错，必然要存储中间状态，出错之后从存储的状态中恢复，并重放后续的数据。对于中间状态的管理和恢复，必须做得足够轻量，以保证系统整体的实时性和吞吐量。</p>
+<h4 id="流量控制"><a class="markdownIt-Anchor" href="#流量控制"></a> 流量控制</h4>
+<p>流处理任务中的每一个节点，处理数据的速度都是有上限的。当数据的流量在某些时刻超出了节点的上限时，流处理系统需要启动流量控制机制，防止一个节点的压力形成雪崩效应，影响到整个系统的数据处理。</p>
+<h3 id="流处理系统的目标"><a class="markdownIt-Anchor" href="#流处理系统的目标"></a> 流处理系统的目标</h3>
+<p>优秀的流处理系统，需要解决好大数据处理的共性问题，以及流处理的特有问题，满足正确性、实时性、高吞吐、灵活性的目标。下面我们来看一看Flink的设计细节。</p>
+<h2 id="flink解决方案"><a class="markdownIt-Anchor" href="#flink解决方案"></a> Flink解决方案</h2>
+<h3 id="整体架构"><a class="markdownIt-Anchor" href="#整体架构"></a> 整体架构</h3>
+<p>Flink整体架构如图所示:</p>
+<p><img src="/images/flink/processes.svg" alt="" /></p>
+<p>Flink系统由<code>Flink Program</code>、<code>JobManager</code>、<code>TaskManager</code>三个部分组成。</p>
+<p><code>Flink Program</code> 加载用户提交的任务代码，解析并生成任务执行拓扑图，并将拓扑图提交给<code>JobManager</code>。</p>
+<p><code>JobManager</code>基于任务执行拓扑图，生成相应的物理执行计划，将执行计划发送给<code>TaskManager</code>执行。除此之外，<code>JobManager</code>还负责协调checkpoint的生成，不断地从<code>TaskManager</code>收集Operator的状态，并周期性生成checkpoint，以便在系统出错时从checkpoint恢复之前的状态。</p>
+<p><code>TaskManager</code>负责管理任务执行所需的资源，执行具体的任务，并将任务产出的数据流传入给下一个任务。</p>
+<p><code>Flink Program</code>、<code>JobManager</code>、<code>TaskManager </code>之间，使用Akka框架(<code>Actor System</code>)进行通信, 通过发送消息驱动任务的推进。</p>
+<h3 id="资源管理-2"><a class="markdownIt-Anchor" href="#资源管理-2"></a> 资源管理</h3>
+<p>在流式数据处理的场景，输入数据是连续的，每一条数据大小接近，并且处理完就可以丢弃，无需落盘。JVM的内存管理机制，存在着对象存储密度低，内存利用率不高，大内存时GC停顿较长，影响系统吞吐量等问题，在流处理场景下效率不高，于是Flink抽象了一套自己的内存管理机制。</p>
+<p><code>TaskManager</code>是Flink任务执行的容器，提供了内存管理、IO管理、网络管理功能。</p>
+<p>每个<code>TaskManger</code>上运行一个jvm进程。每个<code>TaskSlot</code>运行一个线程，瓜分<code>Task Manager</code>的内存。</p>
+<p><img src="/images/flink/slot_sharing.svg" alt="" /></p>
+<p>为了提高资源的利用率，Flink允许同一个任务的多个子任务，在同一个<code>TaskSlot</code>中执行。通过<a href="https://ci.apache.org/projects/flink/flink-docs-stable/dev/stream/operators/#task-chaining-and-resource-groups">Resource Group</a> 机制，Flink会尽量将多个子任务放到一个slot中执行，用户也可以使用自定义的资源共享逻辑。</p>
+<h4 id="memorymanager"><a class="markdownIt-Anchor" href="#memorymanager"></a> MemoryManager</h4>
+<p>Flink通过<code>MemoryManager</code>管理内存， 以<code>MemorySegment</code>为单位。默认情况下，<code>MemorySegment</code>可以看做是32kb大的内存块抽象，可以操作堆内和对外内存，Flink通过引用计数来释放<code>MemorySegment</code>。</p>
+<h4 id="iomananger"><a class="markdownIt-Anchor" href="#iomananger"></a> IOMananger</h4>
+<p>Flink通过<code>IOManger</code>管理磁盘IO，提供了同步和异步两种写模式，底层通过异步的方式进行读写。</p>
+<h4 id="networkmanager"><a class="markdownIt-Anchor" href="#networkmanager"></a> NetworkManager</h4>
+<p>涉及到网络IO时，<code>TaskManager</code>将配置的内存分提供出来，抽象成<code>NetworkBufferPool</code>，统一管理内存的申请和释放。</p>
+<p>每一个<code>TaskManager</code>拥有一个<code>NetworkBufferPool</code>,每一个<code>TaskSlot</code>拥有一个独立的<code>LocalBufferPool</code>, 瓜分<code>NetworkBufferPool</code>拥有的内存分片数。(先满足每个<code>LocalBufferPool</code>的最低要求，如有剩余，再按<code>LocalBufferPool</code>的需求比例分配)。下图是一个Flink任务网络IO的示例：</p>
+<p><img src="/images/flink/flink-network-stack2.png" alt="" /></p>
+<h3 id="任务调度与执行"><a class="markdownIt-Anchor" href="#任务调度与执行"></a> 任务调度与执行</h3>
+<p>流式任务处理的场景中，对数据的延时和吞吐很敏感，Flink通过协同各个组件，推动任务高效调度与执行。</p>
+<h4 id="flink-program"><a class="markdownIt-Anchor" href="#flink-program"></a> Flink Program</h4>
+<p>以官方的<a href="https://github.com/apache/flink/blob/master/flink-examples/flink-examples-streaming/src/main/scala/org/apache/flink/streaming/scala/examples/socket/SocketWindowWordCount.scala">SocketTextStreamWordCount</a>代码为例:</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">object</span> <span class="title">SocketWindowWordCount</span> </span>&#123;</span><br><span class="line">  <span class="comment">/** Main program method */</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">main</span></span>(args: <span class="type">Array</span>[<span class="type">String</span>]) : <span class="type">Unit</span> = &#123;</span><br><span class="line">    ...    </span><br><span class="line">    <span class="comment">// get the execution environment</span></span><br><span class="line">    <span class="keyword">val</span> env: <span class="type">StreamExecutionEnvironment</span> = <span class="type">StreamExecutionEnvironment</span>.getExecutionEnvironment</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// get input data by connecting to the socket</span></span><br><span class="line">    <span class="keyword">val</span> text: <span class="type">DataStream</span>[<span class="type">String</span>] = env.socketTextStream(hostname, port, &#x27;\n&#x27;)</span><br><span class="line">    <span class="comment">// parse the data, group it, window it, and aggregate the counts </span></span><br><span class="line">    <span class="keyword">val</span> windowCounts = text</span><br><span class="line">          .flatMap &#123; w =&gt; w.split(<span class="string">&quot;\\s&quot;</span>) &#125;</span><br><span class="line">          .map &#123; w =&gt; <span class="type">WordWithCount</span>(w, <span class="number">1</span>) &#125;</span><br><span class="line">          .keyBy(<span class="string">&quot;word&quot;</span>)</span><br><span class="line">          .timeWindow(<span class="type">Time</span>.seconds(<span class="number">5</span>))</span><br><span class="line">          .sum(<span class="string">&quot;count&quot;</span>)</span><br><span class="line">    <span class="comment">// print the results with a single thread, rather than in parallel</span></span><br><span class="line">    windowCounts.print().setParallelism(<span class="number">1</span>)</span><br><span class="line">    env.execute(<span class="string">&quot;Socket Window WordCount&quot;</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">/** Data type for words with count */</span></span><br><span class="line">  <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">WordWithCount</span>(<span class="params">word: <span class="type">String</span>, count: <span class="type">Long</span></span>)</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>Flink client</code>端基于用户提交的代码，初始化执行环境，生成<code>StreamGraph</code>和<code>JobGraph</code>，并提交给<code>JobManager</code>执行。</p>
+<p><img src="/images/flink/jobgraph.jpg" alt="" /></p>
+<p><code>StreamGraph</code>是任务的逻辑执行计划图，将任务执行代码中每一步解析成相应的<code>StreamTransformation</code>，并创建<code>StreamNode</code>与<code>StreamEdge</code>。</p>
+<p><img src="/images/flink/stream_transformation.png" alt="" /></p>
+<p><code>StreamTransformation</code>代表了数据流生成的操作，对定义转换逻辑的<code>StreamOperator</code>进行了封装。</p>
+<p><code>JobGraph</code>在<code>StreamGraph</code>的基础上进行了优化，将可以合并的<code>StreamNode</code>串成chain，提高执行效率。</p>
+<h4 id="jobmanager"><a class="markdownIt-Anchor" href="#jobmanager"></a> JobManager</h4>
+<p>接收到client端提交的<code>StreamGraph</code>之后，解析出对应的物理执行计划<code>ExecutionGraph</code>.</p>
+<p><img src="/images/flink/executiongraph.jpg" alt="" /></p>
+<p><code>JobManger</code>基于<code>JobVetex</code>和并行度信息，生成相应的<code>ExecutionVetex</code>, 基于<code>IntermediateDateSet</code>和<code>JobEdge</code>，生成相应的<code>IntemediateResultPartition</code>和<code>ExecutionEdge</code>。</p>
+<p>基于<code>ExecutionGraph</code>的每个节点，<code>JobManager</code>会生成对应的执行任务，并发送给<code>TaskManager</code>执行。</p>
+<h4 id="taskmanager"><a class="markdownIt-Anchor" href="#taskmanager"></a> TaskManager</h4>
+<p><code>TaskManager</code>基于<code>JobManager</code>发来的<code>TaskDeploymentDescriptor</code>，生成相应的task并执行。Task执行过程主要做了以下几件事情:</p>
+<ul>
+<li>切换任务状态</li>
+<li>加载用户代码</li>
+<li>向<code>NetworkManager</code>注册当前任务</li>
+<li>创建执行环境</li>
+<li>利用反射生成invokable对象，并调用<code>invokable.invoke()</code>方法执行任务。</li>
+</ul>
+<p><code>StreamOperator</code>中定义了数据转换的逻辑，以<code>org.apache.flink.streaming.api.operators.StreamFlatMap</code>为例, <code>processElement</code>方法，执行用户传入的<code>userFunction</code>, 执行flatMap方法并将结果写入collector:</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line">public void processElement(<span class="type">StreamRecord</span>&lt;<span class="type">IN</span>&gt; element) <span class="keyword">throws</span> <span class="type">Exception</span> &#123;</span><br><span class="line">collector.setTimestamp(element);</span><br><span class="line">userFunction.flatMap(element.getValue(), collector);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>不同的Task之间,数据传输过程如下图所示:</p>
+<p><img src="/images/flink/flink_task_data.jpeg" alt="" /></p>
+<ul>
+<li>当前operator在完成数据处理之后，将输出交给<code>RecordWriter</code>。</li>
+<li>通过<code>ChannelSelector</code>选择下游节点。</li>
+<li>将数据序列化之后写入<code>ResultSubPartition</code>。</li>
+<li>触发Flush操作，将数据通过Netty通道写入对端。</li>
+<li>接收端的<code>Netty client</code>收到数据之后，将相应数据写入<code>InputChannel</code>。</li>
+<li>将数据反序列化之后，交给<code>RecordReader</code>,算子执行相应代码。</li>
+</ul>
+<h3 id="正确性语义-2"><a class="markdownIt-Anchor" href="#正确性语义-2"></a> 正确性语义</h3>
+<p>分布式场景中，数据会丢失、会乱序、会重复，出错是常态。流处理框架需要定义正确性语义，保证数据能够被正确处理，并且需要提供容错能力，保证数据处理出错的时候可以正确恢复。</p>
+<h4 id="时间定义"><a class="markdownIt-Anchor" href="#时间定义"></a> 时间定义</h4>
+<p>前文我们提到，流数据相对于批数据，增加了一个时间维度。为了正确的刻画流数据，需要恰当地表征这个时间维度。<br />
+时间可以有以下3中表征方式:</p>
+<ul>
+<li><code>Event Time</code>. 表征事件发生的时间，是事件本身的固有属性。</li>
+<li><code>Ingestion Time</code>. 事件进入Flink系统的时间。</li>
+<li><code>Processing Time</code>. 事件被Flink算子处理的时间。</li>
+</ul>
+<p><img src="/images/flink/event_ingestion_processing_time.svg" alt="" /></p>
+<p>实际的流处理任务，我们需要决定是使用<code>event time</code> 还是 <code>processing time</code>来表征事件，这两个时间之间通常是有<strong>差距</strong>的，并且受网络延时、数据流拥塞情况、系统数据处理能力的影响, 这个差距的大小是不断波动的。</p>
+<p><img src="/images/flink/processing_time_event_time.jpeg" alt="" /></p>
+<p>在简单的场景，比如网页统计用户访问次数(UV), 仅使用<code>processing time</code> 即可，在复杂的场景，比如需要考虑事件之间的先后顺序，则需要使用<code>event time</code>。</p>
+<h4 id="what"><a class="markdownIt-Anchor" href="#what"></a> what</h4>
+<p>Flink到底在计算什么呢？</p>
+<p>用一个词来说，就是变换(Transformation)，具体来说，有逐个元素变换、求和、分组聚合统计、训练机器学习模型等多种变换形式，以及将多个变换组合起来合成一个任务。</p>
+<h4 id="where"><a class="markdownIt-Anchor" href="#where"></a> where</h4>
+<p>计算在哪里进行呢？答案是窗口(windowing)。 由于流数据是时间上是无限的，我们将数据流在逻辑上做切分，分成一个个的窗口，在每一个窗口中进行数据计算。</p>
+<p>Flink 支持一下几种窗口类型:</p>
+<ul>
+<li><code>Fixed windows</code>: 固定时间间隔的窗口。</li>
+<li><code>Sliding windows</code>: 滑动窗口，按一定的滑动尺寸和窗口大小进行计算。比如统计最近1分钟的网站访问次数，每隔10秒钟输出一次。</li>
+<li><code>Sessions windows</code>: 会话窗口。按会话维度进行统计。比如针对每个访问网站的用户建立会话，并且设定会话窗口超时阈值，假设1分钟。如果在最近1分钟之内，用户执行了操作，则将这些操作在同一个会话窗口中进行计算。</li>
+</ul>
+<p><img src="/images/flink/windowing.jpeg" alt="" /></p>
+<p>用户也可以更加自己实际的场景，自定义更加复杂的窗口机制。</p>
+<h4 id="when"><a class="markdownIt-Anchor" href="#when"></a> when</h4>
+<p>计算结果何时输出？流式处理没法像批处理那样，读取所有的输入之后，再计算输出。Flink使用<code>Trigger</code>(触发器)来决定何时输出计算结果。</p>
+<p><code>Trigger</code>就像照相机的快门一样，每按一次，就产出一次快照。<br />
+逻辑上可以将每个窗口划分成多个窗格(<code>pane</code>), 在每个窗格结束的时刻，触发一次输出。在一些比较复杂的场景，比如数据订正(<code>retract</code>)，后续迟到的数据导致先前窗格的计算结果需要做订正，那么一个窗格就可能产生多次输出。</p>
+<p>Flink支持多种形式的<code>Trigger</code>:</p>
+<ul>
+<li><code>Repeated update triggers</code>: 这个是最简单的形式，按固定的频率输出计算结果。</li>
+<li><code>Completeness triggers</code>: 等到数据完整之后，输出计算结果。如何定义数据完整性呢？这就需要引入<code>Watermark</code>的概念，后续我们会介绍<code>Watermark</code>。</li>
+<li><code>Early/On-Time/Late Triggers</code>: 这个是综合以上两种<code>Trigger</code>,对于早到、准时及迟到的数据分别输出计算结果。实际实现的时候，不会无限制地等待迟到的数据，会加上迟到时间的限制，丢弃超过限制的数据。</li>
+</ul>
+<p>讲<code>Completeness triggers</code>的时候，提到了数据完整性依赖<code>Watermark</code>。什么是<code>Watermark</code>呢？一言以蔽之，<code>WaterMark</code>是表征何时数据已经完整的标识。带有时间戳为X的<code>waterMark</code>表示，<code>event time</code>在X之前的数据，已经到齐了。</p>
+<p>以开会为例，比如早上10点钟开团队会议。10点的时候，大部分参会人员已经到达，这部分人员被标记为按时(on-time)参会。但是总有一部分会迟到，为了让这部分人也能正常参会，我们需要等待一段时间，比如约定再等五分钟，五分钟之后我们正式开始，那么这个5分钟就是本次会议定义的<code>Watermark</code>值。</p>
+<p><img src="/images/flink/watermark.jpg" alt="" /></p>
+<p>Flink支持多种形式的<code>Watermark</code>:</p>
+<ul>
+<li>
+<p><code>Perfect watermarks</code>: 确定性<code>watermark</code>。如果我们能够准确的评估出数据延迟时间的最大值，就可以使用 <code>perfect watermark</code>， 比如上文开会的例子，我们可以把<code>watermark</code>的值设定为5分钟。</p>
+</li>
+<li>
+<p><code>Heuristic watermarks</code>: 启发式<code>watermark</code>。在数据处理的过程中，Flink基于观察到的数据延时，不断的动态调整<code>Watermark</code>的值。适用于数据延时有较大波动的场景。</p>
+<p><code>Heuristic watermark</code>可能遇到两个问题:</p>
+<ol>
+<li>太慢。数据迟到了很久，<code>watermark</code>被延迟很久。</li>
+<li>太快。<code>watermark</code>被提前了，导致一些迟到的数据没有被正确处理。</li>
+</ol>
+</li>
+</ul>
+<p>在追求数据完整性的过程中，正确性和低延迟不可兼得。我们需要在保证正确性的前提下，尽量减少延迟。如果条件允许的话，最好使用<code>Perfect watermark</code>.</p>
+<h4 id="how"><a class="markdownIt-Anchor" href="#how"></a> how</h4>
+<p>每个窗格的计算结果之间，如何彼此相关呢?有以下几种模式:</p>
+<ul>
+<li><code>discarding</code>
+<ul>
+<li>每个窗格直接彼此独立，当一个窗格完结之后，输出结果并丢弃状态。</li>
+</ul>
+</li>
+<li><code>accumulating</code>
+<ul>
+<li>需要对每个窗格计算的结果做聚合，将窗格的计算结果持久化为状态。每个窗格完结的时候，更新已经存储的状态。</li>
+</ul>
+</li>
+<li><code>accumulating and retracting</code>
+<ul>
+<li>和accumulating类似，但是同时输出当前窗格聚合的结果(accumulating) 以及前一个窗格聚合的结果(retracting)。</li>
+</ul>
+</li>
+</ul>
+<p><img src="/images/flink/retracting.jpeg" alt="" /></p>
+<h3 id="一致性保证与出错处理"><a class="markdownIt-Anchor" href="#一致性保证与出错处理"></a> 一致性保证与出错处理</h3>
+<p>上文提到，分布式场景中，数据会丢失、会乱序、会重复。乱序的问题，结合<code>Event Time</code> 与 <code>Watermark</code>解决。针对丢失和重复的问题，Flink通过分布式快照(distributed snapshot),支持了<code>Exactly Once</code>的一致性语义。</p>
+<ul>
+<li>分布式快照</li>
+</ul>
+<p>流式数据处理，需要周期性的备份整个系统当前的状态，以便出错的时候，基于先前备份的状态进行恢复。</p>
+<p>由于流式处理任务的特殊性，对系统状态备份，提出了特殊的要求。</p>
+<ol>
+<li>状态的备份要足够轻量。状态备份的操作要在短时间内完成，否则会影响系统的实时性和吞吐量。</li>
+<li>状态的备份需要和正常的数据处理并行。状态备份的操作不能打断正常的数据处理，像Java GC 那样，需要Stop The World才能完成整个操作，在流式处理的场景是不可接受的。</li>
+</ol>
+<p>为了满足这些要求，Flink基于<code>Chandy and Lamport</code>算法,实现了分布式快照机制。</p>
+<p>在正常的数据流中，Flink会周期性插入一种特殊的数据记录 - <code>barrier</code>，当算子处理到<code>barrier</code>的时候，会保存算子当前的状态到持久性存储。</p>
+<p><img src="/images/flink/streambarrier-1.jpeg" alt="" /></p>
+<p>当算子包含多个输入的时候，需要对齐多个<code>barrier</code>(align barriers)。当算子某个输入率先接收到<code>barrier</code>的时候，会缓存该输入的后续数据，直到所有的输入都收到<code>barrier</code>之后，才会触发状态备份操作，并输出<code>barrier</code>到下游算子。</p>
+<p><img src="/images/flink/operatorcheckpoints-1.jpeg" alt="" /></p>
+<p>除了备份各个算子的状态生成snapshot之外，对于sink还需要执行一步额外操作 —— 将结果写入外部设备。Flink通过两阶段提交的机制(two-phase commit), 来实现这个分布式事务。</p>
+<p><img src="/images/flink/two-phase-commit.jpeg" alt="" /></p>
+<ul>
+<li>出错恢复</li>
+</ul>
+<p>分布式快照完成之后，出错恢复就变得十分直接: 当出错的时候，系统读取最近一次成功的快照，恢复到快照定义的状态，并且source按照快照记录的点位，重新读取后续的输入数据。</p>
+<h3 id="流量控制-2"><a class="markdownIt-Anchor" href="#流量控制-2"></a> 流量控制</h3>
+<p>在流式处理系统中，如果某个算子处理数据的速度，持续落后于数据输入的速度，不加控制的话，就会在算子内部形成流量拥塞，严重的时候会压垮算子乃至整个系统。</p>
+<p>流量控制的最简单方式是静态限速，通过对系统容量的评估，设置一个流量的上限阈值。业界有很多限流的组件可以直接使用，通常基于滑动窗口、漏桶、令牌桶等算法实现。</p>
+<p>但是静态限速通常并不适用于流式处理的场景，因为任务的流量常常是动态波动的，难以预先评估出一个合理的上限阈值，需要对波动的流量进行自适应地处理。</p>
+<p>Flink底层通过TCP连接传输数据。TCP基于通过滑动窗口的机制，自带流量控制能力。在Flink1.5版本以前，是直接基于TCP实现流量控制。</p>
+<p><img src="/images/flink/tcp-flow-control.png" alt="" /></p>
+<p>当上游的数据发送速度持续超出下游的处理速度时，<code>InputChannel</code>持续向<code>LocalBufferPool</code>申请buffer，<code>LocalBufferPool</code>又向<code>NetworkBufferPool</code>申请buffer，直至<code>LocalBufferPool</code>和<code>NetworkBufferPool</code>都无法申请到更多的buffer，<code>InputChannel</code>被填满，无法读取新的数据。</p>
+<p>此时Netty会停止从Socket的Buffer中度数据，下游Socket的Buffer被填满。上游的TCP socket会收到<code>Window=0</code>的信息，停止发送数据。</p>
+<p>对于上游的算子，停止向socket buffer 写数据之后，Netty达到<code>high watermark</code>也停止写数据，最终<code>ResultSubPartition</code>被填满，消耗完所以可以申请到的<code>LocalBufferPool</code> 与 <code>NetworkBufferPool</code>。</p>
+<p>于是数据拥塞不断地向上游传递，形成反压。</p>
+<p>基于TCP流控机制实现反压，技术上可行，但是有两个缺陷:</p>
+<ol>
+<li><code>TaskManager</code>管理的多个subtask, 会复用TCP连接向下游发送数据。一个subtask出现了数据拥塞，会影响其它的subtask，导致整个<code>TaskManager</code>都不能向下游写数据。</li>
+<li>TCP处于传输层，基于TCP实现流控，会导致反压传播路径比较长，生效延迟比较大。</li>
+</ol>
+<p>为了解决这些缺陷，在Flink1.5版本之后，引入了基于Credit的反压机制，在Flink应用层面实现流量控制。</p>
+<p>下游的<code>InputChannel</code>从上游的<code>ResultPartition</code>接收数据的时候，会基于当前已经缓存的数据量，以及可申请到的<code>LocalBufferPool</code>与<code>NetworkBufferPool</code>，计算出一个<code>Credit</code>值返回给上游。上游基于<code>Credit</code>的值，来决定发送多少数据。<code>Credit</code>就像信用卡额度一样，不能超支。</p>
+<p>当下游发生数据拥塞时，<code>Credit</code>减少值为0，于是上游停止数据发送。拥塞压力不断向上游传导，形成反压。</p>
+<p><img src="/images/flink/credit-flow-control.png" alt="" /></p>
+<h2 id="从流到批"><a class="markdownIt-Anchor" href="#从流到批"></a> 从流到批</h2>
+<p>上文提到，流式数据是批数据的一种特殊形式，流可以看成有边界的批。</p>
+<p>流比批多了一个时间维度，使得流式处理的复杂度提升了一个数量级。所以利用成熟批处理引擎(如spark steaming)来处理流数据，只能实现近似处理。而利用成熟的流处理引擎来处理批数据，则类似降维攻击，理论上可以比较容易实现。</p>
+<p>将批处理作为流处理的一种特殊形式，实现流批一体(<code>stream batch unified</code>)的处理引擎，是Flink社区一直以来的目标。在Flink1.9之前，针对流处理和批处理，分别抽象出了<code>DataStreamAPI</code>和<code>DataSetAPI</code>，期望在API层面实现流批统一。</p>
+<p><img src="/images/flink/stream_batch_old.jpg" alt="" /></p>
+<p>在Flink1.9之后，社区merge了阿里巴巴的Blink分支，迎来了一次架构升级，统一使用一套引擎来处理流式任务和批任务，在上层API和底层处理引擎都实现了流批一体的目标。</p>
+<p><img src="/images/flink/stream_batch_new.png" alt="" /></p>
+<p>更多的细节可以参考这篇<a href="https://developpaper.com/uncover-the-new-architecture-of-flink-1-9-can-you-use-the-blink-planner/">文章</a>。</p>
+<h2 id="总结"><a class="markdownIt-Anchor" href="#总结"></a> 总结</h2>
+<p>在系统诞生之初，正确地定义问题，对核心概念提出有力的抽象，通过合理的架构设计将复杂的问题分而治之，并给未来的功能留下充分的扩展空间，那么系统就可以沿着正确的轨道不断发展和进化，最终成长为一个优秀的系统。</p>
+<p>Flink正是一个这样的优秀系统，能够正确、实时、高吞吐地实现流式处理。</p>
+<p>但是任何一个系统都有边界，都有其适用的场景。不能正确地理解系统的边界，就会陷入查理芒格所说的铁锤人理论:在手里拿着个锤子的人眼里，看什么都像是钉子。</p>
+<p>官方文档和博客，通常只会介绍系统有哪些功能，在哪些场景表现优异，但是很少会提及哪些功能是当前未实现的，哪些场景是当前系统不适用的。这部分知识，需要我们深入学习系统的原理架构之后，结合实际使用经验去领悟。</p>
+<p>对于Flink系统来说，当我们决定引入Flink做实时数据处理的时候，可以多问自己一个问题: 用后端应用程序来做这个事情行不行, Flink可以带来什么额外的收益？ 比如在OLTP场景，对数据进行随机读取，并逐条进行处理的场景，使用后端应用程序来处理看起来更加合适。而在OLAP场景，对流式数据进行聚合统计，用Flink处理就更加合适。</p>
+<p>理解了原理和架构之后，让我们深入到实现细节，一起来看一看Flink的源码吧~</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2020/05/20/flink-2020-05-20-flink2/" data-id="cmlkuqb22000nt6lha52c1ply" data-title="Flink原理、架构与实现Part2 - 原理与架构" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          设计数据密集型应用1 —— 序
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/04/06/flink-2020-04-06-flink-1/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Flink原理、架构与实现Part1 - 大数据历史</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

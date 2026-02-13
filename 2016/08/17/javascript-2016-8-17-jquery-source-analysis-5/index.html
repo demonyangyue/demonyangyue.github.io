@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>jQuery 源码精粹5 -- event 与 effect | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="引言 翻过Defer和Promise的大山，我们来到了本系列博客的最后一站，这一篇我们来研究event.js与effect.js。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="jQuery 源码精粹5 -- event 与 effect">
+<meta property="og:url" content="http://demonyangyue.github.io/2016/08/17/javascript-2016-8-17-jquery-source-analysis-5/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="引言 翻过Defer和Promise的大山，我们来到了本系列博客的最后一站，这一篇我们来研究event.js与effect.js。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2016-08-16T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-06-20T06:28:07.586Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="jQuery">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-javascript-2016-8-17-jquery-source-analysis-5" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/08/17/javascript-2016-8-17-jquery-source-analysis-5/" class="article-date">
+  <time class="dt-published" datetime="2016-08-16T16:00:00.000Z" itemprop="datePublished">2016-08-17</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programming/">Programming</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      jQuery 源码精粹5 -- event 与 effect
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a class="markdownIt-Anchor" href="#引言"></a> 引言</h2>
+<p>翻过<code>Defer</code>和<code>Promise</code>的大山，我们来到了本系列博客的最后一站，这一篇我们来研究<code>event.js</code>与<code>effect.js</code>。</p>
+<span id="more"></span>
+<h2 id="eventjs"><a class="markdownIt-Anchor" href="#eventjs"></a> event.js</h2>
+<p>关于<code>jQuery</code>的<code>event</code>模块，最有趣的代码位于<code>src/event/alias.js</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">jQuery.<span class="title function_">each</span>( ( <span class="string">&quot;blur focus focusin focusout resize scroll click dblclick &quot;</span> +</span><br><span class="line">	<span class="string">&quot;mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave &quot;</span> +</span><br><span class="line">	<span class="string">&quot;change select submit keydown keypress keyup contextmenu&quot;</span> ).<span class="title function_">split</span>( <span class="string">&quot; &quot;</span> ),</span><br><span class="line">	<span class="keyword">function</span>(<span class="params"> i, name </span>) &#123;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Handle event binding</span></span><br><span class="line">	jQuery.<span class="property">fn</span>[ name ] = <span class="keyword">function</span>(<span class="params"> data, fn </span>) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="variable language_">arguments</span>.<span class="property">length</span> &gt; <span class="number">0</span> ?</span><br><span class="line">			<span class="variable language_">this</span>.<span class="title function_">on</span>( name, <span class="literal">null</span>, data, fn ) :</span><br><span class="line">			<span class="variable language_">this</span>.<span class="title function_">trigger</span>( name );</span><br><span class="line">	&#125;;</span><br><span class="line">&#125; );</span><br></pre></td></tr></table></figure>
+<p>我们可以看到，几乎所有常用的event，底层都在调用<code>on</code>或者<code>trigger</code>方法（根据是否传入一个额外的fn参数）， 以<code>on</code>方法为例，它是如何定义的呢？</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">jQuery.<span class="property">fn</span>.<span class="title function_">extend</span>( &#123;</span><br><span class="line"></span><br><span class="line">	<span class="attr">on</span>: <span class="keyword">function</span>(<span class="params"> types, selector, data, fn </span>) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="title function_">on</span>( <span class="variable language_">this</span>, types, selector, data, fn );</span><br><span class="line">	&#125;,</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在<code>on</code>方法内部，调用<code>jQuery.event.add</code>方法，给每个选中的DOM 节点绑定相应的事件。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">on</span>(<span class="params"> elem, types, selector, data, fn, one </span>) &#123;</span><br><span class="line">	...</span><br><span class="line">	<span class="keyword">return</span> elem.<span class="title function_">each</span>( <span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">		jQuery.<span class="property">event</span>.<span class="title function_">add</span>( <span class="variable language_">this</span>, types, fn, data, selector );</span><br><span class="line">	&#125; );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在<code>jQuery.event.add</code>方法定义内部：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ( elem.<span class="property">addEventListener</span> ) &#123;</span><br><span class="line">	elem.<span class="title function_">addEventListener</span>( type, eventHandle );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到底层调用<code>addEventListener</code>方法将事件绑定到相应的节点。</p>
+<h2 id="effectjs"><a class="markdownIt-Anchor" href="#effectjs"></a> effect.js</h2>
+<p><code>effect.js</code>定义了<code>jQuery</code>各种酷炫的动画效果，通读其代码，首先看到的有趣部分：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Generate shortcuts for custom animations</span></span><br><span class="line">jQuery.<span class="title function_">each</span>( &#123;</span><br><span class="line">	<span class="attr">slideDown</span>: <span class="title function_">genFx</span>( <span class="string">&quot;show&quot;</span> ),</span><br><span class="line">	<span class="attr">slideUp</span>: <span class="title function_">genFx</span>( <span class="string">&quot;hide&quot;</span> ),</span><br><span class="line">	<span class="attr">slideToggle</span>: <span class="title function_">genFx</span>( <span class="string">&quot;toggle&quot;</span> ),</span><br><span class="line">	<span class="attr">fadeIn</span>: &#123; <span class="attr">opacity</span>: <span class="string">&quot;show&quot;</span> &#125;,</span><br><span class="line">	<span class="attr">fadeOut</span>: &#123; <span class="attr">opacity</span>: <span class="string">&quot;hide&quot;</span> &#125;,</span><br><span class="line">	<span class="attr">fadeToggle</span>: &#123; <span class="attr">opacity</span>: <span class="string">&quot;toggle&quot;</span> &#125;</span><br><span class="line">&#125;, <span class="keyword">function</span>(<span class="params"> name, props </span>) &#123;</span><br><span class="line">	jQuery.<span class="property">fn</span>[ name ] = <span class="keyword">function</span>(<span class="params"> speed, easing, callback </span>) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="variable language_">this</span>.<span class="title function_">animate</span>( props, speed, easing, callback );</span><br><span class="line">	&#125;;</span><br><span class="line">&#125; );</span><br></pre></td></tr></table></figure>
+<p>可以看到绝大多数的动画定义，底层都是调用的<code>animate</code>方法，区别在于传入了略微不同的<code>prop</code>参数，<code>animate</code>方法是如何定义的呢？</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">jQuery.<span class="property">fn</span>.<span class="title function_">extend</span>( &#123;</span><br><span class="line">	<span class="attr">animate</span>: <span class="keyword">function</span>(<span class="params"> prop, speed, easing, callback </span>) &#123;</span><br><span class="line">		<span class="keyword">var</span> empty = jQuery.<span class="title function_">isEmptyObject</span>( prop ),</span><br><span class="line">			optall = jQuery.<span class="title function_">speed</span>( speed, easing, callback ),</span><br><span class="line">			doAnimation = <span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">				...</span><br><span class="line">			&#125;;</span><br><span class="line">			doAnimation.<span class="property">finish</span> = doAnimation;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">return</span> empty || optall.<span class="property">queue</span> === <span class="literal">false</span> ?</span><br><span class="line">			<span class="variable language_">this</span>.<span class="title function_">each</span>( doAnimation ) :</span><br><span class="line">			<span class="variable language_">this</span>.<span class="title function_">queue</span>( optall.<span class="property">queue</span>, doAnimation );</span><br><span class="line">	&#125;,</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>animate</code>方法在每个DOM节点上执行<code>doAnimation</code>函数。<code>doAnimation</code>的定义十分简单：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">doAnimation = <span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Operate on a copy of prop so per-property easing won&#x27;t be lost</span></span><br><span class="line">	<span class="keyword">var</span> anim = <span class="title class_">Animation</span>( <span class="variable language_">this</span>, jQuery.<span class="title function_">extend</span>( &#123;&#125;, prop ), optall );</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Empty animations, or finishing resolves immediately</span></span><br><span class="line">	<span class="keyword">if</span> ( empty || dataPriv.<span class="title function_">get</span>( <span class="variable language_">this</span>, <span class="string">&quot;finish&quot;</span> ) ) &#123;</span><br><span class="line">		anim.<span class="title function_">stop</span>( <span class="literal">true</span> );</span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>可以看到<code>doAnimaiton</code>方法内部主要是初始化了一个<code>Animation</code>对象：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">Animation</span>(<span class="params"> elem, properties, options </span>) &#123;</span><br><span class="line">	...</span><br><span class="line">	<span class="keyword">var</span> animation = deferred.<span class="title function_">promise</span>( &#123;</span><br><span class="line">			...</span><br><span class="line">		&#125; ),</span><br><span class="line">		</span><br><span class="line">	....</span><br><span class="line">	</span><br><span class="line">	jQuery.<span class="property">fx</span>.<span class="title function_">timer</span>(</span><br><span class="line">		jQuery.<span class="title function_">extend</span>( tick, &#123;</span><br><span class="line">			<span class="attr">elem</span>: elem,</span><br><span class="line">			<span class="attr">anim</span>: animation,</span><br><span class="line">			<span class="attr">queue</span>: animation.<span class="property">opts</span>.<span class="property">queue</span></span><br><span class="line">		&#125; )</span><br><span class="line">	);</span><br><span class="line"></span><br><span class="line">	<span class="comment">// attach callbacks from options</span></span><br><span class="line">	<span class="keyword">return</span> animation.<span class="title function_">progress</span>( animation.<span class="property">opts</span>.<span class="property">progress</span> )</span><br><span class="line">		.<span class="title function_">done</span>( animation.<span class="property">opts</span>.<span class="property">done</span>, animation.<span class="property">opts</span>.<span class="property">complete</span> )</span><br><span class="line">		.<span class="title function_">fail</span>( animation.<span class="property">opts</span>.<span class="property">fail</span> )</span><br><span class="line">		.<span class="title function_">always</span>( animation.<span class="property">opts</span>.<span class="property">always</span> );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>Animation</code>的主体代码十分清晰，内部定义了一个私有的<code>Promise</code>对象<code>animation</code>, 按指定的时间间隔触发相应的动画操作，并根据传入的参数绑定完成或失败后的回调函数。</p>
+<h2 id="跋"><a class="markdownIt-Anchor" href="#跋"></a> 跋</h2>
+<p>写到这里，jquery 源码分析系列就告一段落了。分享一些感悟：</p>
+<ul>
+<li>知其然也要知其所以然，只有洞悉了源代码，方可对使用的库有透彻的理解。</li>
+<li>带着问题去阅读（无论是书和代码），可以让阅读变得有趣，让记忆变得深刻。</li>
+</ul>
+<p>一千个读者眼中有一千个哈姆雷特，同一份源代码，不同的人读来应有不同的体会。希望本系列博客，可以抛砖引玉，为你阅读jQuery源码提供一些线索。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2016/08/17/javascript-2016-8-17-jquery-source-analysis-5/" data-id="cmlkuqb24001ft6lh96h83dhm" data-title="jQuery 源码精粹5 -- event 与 effect" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/09/09/akka-2016-9-9-akka-in-scala-7/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Akka in Scala Part 7 - Future
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/08/16/javascript-2016-8-16-jquery-source-analysis-4/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">jQuery 源码精粹4 -- defer与promise</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+          <li>
+            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/06/flink-2020-04-06-flink-1/">Flink原理、架构与实现Part1 - 大数据历史</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
