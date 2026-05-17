@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Harness Engineering 原理与实践分享 | crackshell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Harness Engineering 原理与实践分享  什么是 Harness 随着大模型能力的迅速发展，工程师们在AI 的辅助下，能够以数倍乃至数十倍的效率，高效地产出工程代码。 模型的能力本身已经很强大，但是同一个模型，在不同的使用方式下，输出的质量差异巨大。如果不加任何约束，一旦模型产生了某种幻觉，很容易沿着一个错误方向迅速偏离。 模型本身没有问题，问题出在怎么驱动模型上面。我们需要给模">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Harness Engineering 原理与实践分享">
+<meta property="og:url" content="http://demonyangyue.github.io/2026/05/17/harness-2026-05-17-harness-engineering-sharing/index.html">
+<meta property="og:site_name" content="crackshell">
+<meta property="og:description" content="Harness Engineering 原理与实践分享  什么是 Harness 随着大模型能力的迅速发展，工程师们在AI 的辅助下，能够以数倍乃至数十倍的效率，高效地产出工程代码。 模型的能力本身已经很强大，但是同一个模型，在不同的使用方式下，输出的质量差异巨大。如果不加任何约束，一旦模型产生了某种幻觉，很容易沿着一个错误方向迅速偏离。 模型本身没有问题，问题出在怎么驱动模型上面。我们需要给模">
+<meta property="og:locale">
+<meta property="og:image" content="http://demonyangyue.github.io/images/harness/1.png">
+<meta property="og:image" content="http://demonyangyue.github.io/images/harness/2.png">
+<meta property="og:image" content="http://demonyangyue.github.io/images/harness/3.png">
+<meta property="article:published_time" content="2026-05-16T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-17T02:42:09.822Z">
+<meta property="article:author" content="Yang, Yue">
+<meta property="article:tag" content="Harness Engineering">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://demonyangyue.github.io/images/harness/1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="crackshell" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" rel="stylesheet" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">crackshell</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Hack on heaven&#39;s door</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://demonyangyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-harness-2026-05-17-harness-engineering-sharing" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2026/05/17/harness-2026-05-17-harness-engineering-sharing/" class="article-date">
+  <time class="dt-published" datetime="2026-05-16T16:00:00.000Z" itemprop="datePublished">2026-05-17</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Engineering/">Engineering</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Harness Engineering 原理与实践分享
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="harness-engineering-原理与实践分享"><a class="markdownIt-Anchor" href="#harness-engineering-原理与实践分享"></a> Harness Engineering 原理与实践分享</h1>
+<h2 id="什么是-harness"><a class="markdownIt-Anchor" href="#什么是-harness"></a> 什么是 Harness</h2>
+<p>随着大模型能力的迅速发展，工程师们在AI 的辅助下，能够以数倍乃至数十倍的效率，高效地产出工程代码。</p>
+<p>模型的能力本身已经很强大，但是同一个模型，在不同的使用方式下，输出的质量差异巨大。如果不加任何约束，一旦模型产生了某种幻觉，很容易沿着一个错误方向迅速偏离。</p>
+<p>模型本身没有问题，问题出在<strong>怎么驱动模型</strong>上面。我们需要给模型加上护栏，保障AI能够实现<strong>持续产出生产级可用代码</strong>的目标。于是 Harness Engineering的理念应运而生。</p>
+<p>Harness Engineering 不是一个编程工具或者框架，和敏捷编程类似，它是一种 AI 编程实践理念，是围绕 AI Coding Agent 设计和构建约束机制、反馈回路、工作流控制与持续改进循环的系统工程实践。</p>
+<p>Harness 字面上有马具的意思，这是一个有趣的隐喻，大模型像一匹野马，能日行千里，但有时会不受控制，所以需要 Harness 的约束，让它跑在正确的方向上。</p>
+<span id="more"></span>
+<h3 id="起源和发展"><a class="markdownIt-Anchor" href="#起源和发展"></a> 起源和发展</h3>
+<p>Harness 概念的源头，由 HashiCorp 联合创始人 Mitchell Hashimoto 于 2026 年 2 月 5 日提出，核心理念是：每当 AI 犯错，就工程化一个方案，让它永远不再犯同样的错。通过反馈驱动，系统性地解决问题根源。</p>
+<p>OpenAI内部一个最初仅3人的工程师团队，使用Codex Agent在五个月内构建了一个百万行代码的真实产品，全程未手写一行代码。团队发现，最困难的挑战不是模型能力不足，而是如何设计让智能体稳定工作的环境、反馈循环和控制系统。</p>
+<p>Anthropic 将 Harness 定义为支撑复杂 AI Agent 运行的外部框架、控制结构与编排系统，提出了 Planner -&gt; Generator -&gt; Evaluator 架构，来保障 Agent 在长程任务中稳定运行。</p>
+<p>LangChain 作为核心推动者，提出了公式 `Agent = Model + Harness`，将 Harness 定义为除了模型本身之外的每一行代码、配置和执行逻辑。</p>
+<p>软件工程思想领袖 Martin Fowler 的站台，将 Harness Engineering 从流行词汇提升到了主流工程方法论的地位，指出 Harness Engineering 是对 AI 赋能软件开发的框架性阐述。</p>
+<img src="/images/harness/1.png" width="80%" height="80%">
+<h2 id="为何需要harness-engineering"><a class="markdownIt-Anchor" href="#为何需要harness-engineering"></a> 为何需要Harness Engineering</h2>
+<p>如果我们裸用 AI Agent 进行编码，会遇到以下核心挑战：</p>
+<h3 id="上下文管理困境"><a class="markdownIt-Anchor" href="#上下文管理困境"></a> 上下文管理困境</h3>
+<p>大模型本身是无状态的，模型无法记住上一次调用的内容，依赖上下文传入模型决策所需要的信息。</p>
+<p>一个典型的上下文窗口，通常由以下几个部分构成：</p>
+<ul>
+<li>
+<p>系统提示词（System Prompt）</p>
+</li>
+<li>
+<p>对话历史（Conversation History）</p>
+</li>
+<li>
+<p>当前用户输入（Current User Message）</p>
+</li>
+<li>
+<p>工具调用与结果（Tool Use &amp; Results）</p>
+</li>
+<li>
+<p>检索增强内容（RAG，可选）</p>
+</li>
+</ul>
+<img src="/images/harness/2.png" width="80%" height="80%">
+<p>上下文窗口长度是有限的，即使是 1M token 的模型，也放不下一个中型项目的代码量，Agent 无法自主决定什么该看，什么不该看。</p>
+<p>当大量的仓库内容被塞进上下文时，上下文的质量（信噪比）急剧下降，关键信息被淹没，模型注意力被稀释，导致回答质量降低。</p>
+<h3 id="工具系统与环境安全"><a class="markdownIt-Anchor" href="#工具系统与环境安全"></a> 工具系统与环境安全</h3>
+<p>大模型本身不能执行任何操作，它只能生成文本。读写文件、执行系统命令，都需要外部工具的支持。</p>
+<p>一些操作具有破坏性，比如 `rm -rf`、`git push --force`、`DROP TABLE`，Agent 可能会因为环境而执行这些危险操作。一些操作会涉及敏感数据，Agent 可能会把 `.env` 中的密钥文件发送到外部服务。</p>
+<h3 id="模型幻觉"><a class="markdownIt-Anchor" href="#模型幻觉"></a> 模型幻觉</h3>
+<p>幻觉是大模型的固有属性，在编码场景，模型幻觉可能对产生的结果造成负面影响。</p>
+<p>Agent 可能会基于训练数据猜测项目结构，编造不存在的 API/函数/文件路径。如果生成的代码，没有经过 lint 检查、单元测试验证，错误会逐渐累积。</p>
+<h3 id="状态与记忆断裂"><a class="markdownIt-Anchor" href="#状态与记忆断裂"></a> 状态与记忆断裂</h3>
+<p>如果不做显式管理，Agent 无法记录历史的状态，保留历史的记忆。每次 Agent 对话从零开始，不记得用户的偏好、项目的约定。历史上犯过的错误，无法沉淀为团队知识，导致错误重复发生。</p>
+<p>对于长程任务，Agent 做到一半，上下文被截断，导致不知道当前做到了哪里，Agent 陷入失忆状态。会话不是记忆，上下文窗口也不是项目状态。对话可以压缩，可以截断，也可以被后续信息稀释。模型在第十轮对话还能记得第一轮的内容，从来都不是一个可靠前提。</p>
+<h3 id="任务规划与分解能力不足"><a class="markdownIt-Anchor" href="#任务规划与分解能力不足"></a> 任务规划与分解能力不足</h3>
+<p>Agent 倾向于一次性输出完整方案，但是在处理复杂任务时，脱离了分步执行和中间验证环节，寄希望于一步到位是不现实的。</p>
+<p>多个子任务在运行，如果没有对任务之间的依赖做合适的解析，子任务之间只能串行执行。</p>
+<p>如果一个任务走错了方向，也无法回退，只会沿着错误的道路越陷越深。</p>
+<h3 id="输出质量不稳定"><a class="markdownIt-Anchor" href="#输出质量不稳定"></a> 输出质量不稳定</h3>
+<p>如果项目中缺乏统一的规范约束，则每次生成的代码风格、命名规范等可能不同，项目的 lint 规则、测试规约也无从遵守。</p>
+<p>Agent 常常倾向于过度设计，向工程中添加不必要的抽象、实现分支、错误处理。</p>
+<p>每次 Agent 生成代码，都可能引入少量的风格不一致、冗余逻辑或次优实现。单次看起来无关痛痒，累积起来却会让代码库逐渐腐化（Code Rot），软件熵持续累积直至复杂度失控。</p>
+<p>裸用 Agent 写代码，质量控制几乎完全依赖人工 Code Review。但是由于 Agent 的产出代码的速度远超人工审查速度，质量瓶颈就从&quot;写代码&quot;转移到了&quot;审核代码&quot;。</p>
+<h2 id="harness-engineering实践"><a class="markdownIt-Anchor" href="#harness-engineering实践"></a> Harness Engineering实践</h2>
+<p>Harness Engineering 的本质是：把 LLM 的概率性输出，通过工程系统转化为确定性的、安全的、可验证的软件工程操作。</p>
+<p>每一个工程实践方案都在回答同一个问题——如何让一个&quot;聪明但不可靠&quot;的组件，变成&quot;聪明且可靠&quot;的系统。</p>
+<h3 id="上下文工程"><a class="markdownIt-Anchor" href="#上下文工程"></a> 上下文工程</h3>
+<p>核心目标是在正确的时刻把正确的信息放入上下文窗口。</p>
+<ul>
+<li>
+<p>上下文分层。每一层有不同的生命周期和加载策略，避免一次性灌入所有信息。对于项目级别的上下文，如memory 文件，按需注入。对于任务级别的上下文，比如当前正在操作的文件、搜索工具返回的结果，动态加载进上下文。对于对话历史，按需动态压缩。</p>
+</li>
+<li>
+<p>按需加载。不预先加载整个代码库，而是提供项目知识文档，以及搜索和读写工具，让Agent自主决定需要加载哪些内容到上下文。</p>
+</li>
+<li>
+<p>上下文压缩。当会话接近窗口上限时，自动触发压缩，整个过程对用户无感知。压缩时保留当前修改了哪些文件、任务进度、用户的关键指令，丢弃掉中间探索细节。</p>
+</li>
+</ul>
+<p>在实际项目的实践中，通过一个全局的AGENTS.md文件(123行)，作为代码库整体知识的索引和地图。按系统架构知识、通用知识、规范知识、产品领域知识这几层，分层构建了项目知识库。</p>
+<p>Agent 在编写代码时，基于渐进式披露的方式，按需加载项目知识。</p>
+<h3 id="工具编排与环境隔离"><a class="markdownIt-Anchor" href="#工具编排与环境隔离"></a> 工具编排与环境隔离</h3>
+<p>为了让 Agent 高效调用所需工具，引入了以下 Harness 工程实践：</p>
+<ul>
+<li>
+<p>通过cli、mcp、skill 扩展工具支持，各个工具需要满足原子性和可验证性。</p>
+</li>
+<li>
+<p>工具执行的结果，完整返回，如果执行失败了，不直接终止流程，而是让 Agent 基于错误信息自己尝试修正。</p>
+</li>
+<li>
+<p>对于一些危险操作，可以放到沙箱中执行。在项目约束中，强制要求用户确认之后才能执行高危操作。</p>
+</li>
+</ul>
+<p>在实际项目的实践中，通过 MCP 工具读取钉钉&amp;语雀文档，通过 superpowers 配套的 skill 进行代码验证工作，代码 Agent 在运行过程中，按需调用已安装的工具。</p>
+<h3 id="规范约束"><a class="markdownIt-Anchor" href="#规范约束"></a> 规范约束</h3>
+<p>模型的训练数据是静态的，但是项目代码是动态的，为了避免项目代码偏离最初的设计目标，需要通过 Harness 显式地给 Agent 加上规范约束。</p>
+<p>可以强制让 Agent 基于客观事实（读取的文件内容、搜索工具返回的结果）作为行动的依据，禁止随意猜测。</p>
+<p>让 Agent 遵循 写代码 -&gt; 编译 -&gt; 规约检查 -&gt; 单元测试 -&gt; 修复问题 的循环，通过准确的反馈保障代码的正确性。</p>
+<p>在实际项目的实践中，沉淀了 PRD 文档规约、任务执行规约、技术实现规约等一系列 Harness 规范约束，利用这些强有力的约束避免 Agent 跑偏。</p>
+<h3 id="状态持久化与记忆系统"><a class="markdownIt-Anchor" href="#状态持久化与记忆系统"></a> 状态持久化与记忆系统</h3>
+<p>引入多层持久化架构，会话内的历史随上下文增长自动压缩，通过task文件跟踪记录当前任务进度，项目级别的约定和配置沉淀到项目知识文档中。</p>
+<p>构建结构化的记忆系统，分类管理结构化条目，记录用户的背景、偏好等信息，通过索引文件MEMORY.md管理，按需加载。</p>
+<p>在实际项目的实践中，借鉴了openspec 的archive 命令，每次需求开发完成之后，通过archive命令将新知识更新到项目知识库，保证代码库知识始终和最新的代码内容对齐。</p>
+<h3 id="规划与任务编排"><a class="markdownIt-Anchor" href="#规划与任务编排"></a> 规划与任务编排</h3>
+<p>先列计划再执行，给 Agent 提供明确的完成标准，通过 Planner -&gt; Generator -&gt; Evaluator 的循环，将复杂的大任务拆分成小任务，跟踪执行进度。</p>
+<p>通过任务的拆分，梳理出任务之间的依赖关系，编排任务执行顺序，使得互不依赖的子任务，由子 Agent 并发执行，各个子 Agent 上下文互相隔离，不污染主 Agent 上下文窗口。</p>
+<p>在实际项目的实践中，拆分出的子 task，会明确标记出上下游依赖关系，以及是否可以并发执行。对于可并发执行的子任务，启动子 Agent 减少任务执行总时间。</p>
+<h3 id="输出质量保障"><a class="markdownIt-Anchor" href="#输出质量保障"></a> 输出质量保障</h3>
+<p>约束 Agent 在编码任务完成之后，在关键节点执行检查，强制执行规范校验、单元测试验证。</p>
+<p>重点是把错误的 fix，沉淀到系统知识库中，让 Agent 在后续执行类似任务时，不再重复犯同样的错误。</p>
+<p>需要注意的是，执行审核校验的 Agent，要使用和编码不同的 Agent。让编码 Agent 自我审查，会停留在自我感觉良好的状态，换一个新视角才能有效发现设计缺陷。</p>
+<p>检查的内容，除了代码规约和单元测试之外，也要审核系统设计的可能问题，持续降熵防止代码腐化。</p>
+<p>在实际项目的实践中，开发完成之后，会自动执行规约校验和单元测试，并手动调用superpowers的review skill，审核设计问题。</p>
+<p>后续需要把这一套校验测试机制，放到我们的持续交付流程中，打造AI delivery流水线，每次代码提交后自动触发规约检查、单元测试执行、架构设计校验，让后台 Agent 自动扫描并提交修复 PR，形成自动化的&quot;Entropy Garbage Collection&quot;机制。</p>
+<p>真正成熟的 Harness，有“把一次偏差转成长期约束”的能力，打造一个持续进化的工程系统。</p>
+<h2 id="反模式"><a class="markdownIt-Anchor" href="#反模式"></a> 反模式</h2>
+<p>实际的 AI coding 开发过程中，存在着一些反模式，让 Agent 无法产出高质量的代码。Anthropic 在其 Harness 工程博客中，总结了 Agent 在复杂项目中的四种典型失败模式及其对应的解决方案：</p>
+<h3 id="one-shotting-monolithic-execution-单体执行"><a class="markdownIt-Anchor" href="#one-shotting-monolithic-execution-单体执行"></a> One-Shotting &amp; Monolithic Execution 单体执行</h3>
+<p>如果让模型在单次对话中，执行一个庞大且复杂的任务，模型会面对上下文膨胀和注意力失焦的问题，导致输出质量直线下降。</p>
+<p>[解决方案] 实现一个多 Agent 的 pipeline，引入 Planner、Generator、Evaluator 这 3 个 Agents，拆分需求并迭代开发。</p>
+<h3 id="superficial-late-stage-testing-测试不足"><a class="markdownIt-Anchor" href="#superficial-late-stage-testing-测试不足"></a> Superficial &amp; Late-Stage Testing 测试不足</h3>
+<p>如果让单 Agent 既当生成者又当裁判（Solo Harness），Agent 会表现出对自己的产出极度宽容，并提早宣告胜利。</p>
+<p>[解决方案] 引入独立的Evaluator对结果进行评估，通过 Playwright 等自动化工具进行严格的质量审查。</p>
+<h3 id="tight-coupling-大脑与双手紧密耦合"><a class="markdownIt-Anchor" href="#tight-coupling-大脑与双手紧密耦合"></a> Tight Coupling 大脑与双手紧密耦合</h3>
+<p>如果将 LLM 运行时与执行环境（Sandbox 容器）混在一起，一旦网络超时、环境崩溃或遇到恶意代码，整个 Agent 框架就会彻底锁死。</p>
+<p>[解决方案] 将大脑与双手解耦，Harness 不再驻留在容器内部， 容器挂了，Harness 直接捕获错误并动态重置一个干净的新容器，而不需要去缝补坏掉的环境。</p>
+<h3 id="treating-sessions-as-linear-and-infinite-无限长会话"><a class="markdownIt-Anchor" href="#treating-sessions-as-linear-and-infinite-无限长会话"></a> Treating Sessions as Linear and Infinite 无限长会话</h3>
+<p>当 Agent 执行跨越数小时或数天的任务时，模型会遭遇<strong>上下文焦虑（Context Anxiety）</strong>，随着上下文窗口变长，其理解和推理能力会发生“退化级联错误”。</p>
+<p>[解决方案] 引入<strong>带结构化交接的完整上下文重置</strong>机制。Agent 像人类软件工程师“换班”一样，在旧会话耗尽前，将当前进度、未完工的 Feature List 写入外置的文件中，然后彻底清空并重置 LLM 上下文，由一个拥有崭新记忆的 Fresh context 实例读取这些外置状态继续工作。</p>
+<img src="/images/harness/3.png" width="80%" height="80%">
+<h2 id="结语"><a class="markdownIt-Anchor" href="#结语"></a> 结语</h2>
+<p>Harness 的本质是外部化的质量保障体系。Harness 的价值不在于让 Agent 变得更聪明，而在于让 Agent 的错误变得可控、可发现、可修复。</p>
+<p>模型在持续吸收 Harness 的能力，为 Harness 做定制化训练。工具调用（function calling）最初是 Harness 层的设计，现在已经成为了模型的原生能力。规划、多步推理、自我纠错——这些能力正在通过后训练被内化到模型权重里。随着模型越来越发展，Harness 可能会越来越薄，也可能会出现新的 Harness 配套工具，但是 Harness 背后的工程思想，会在 AI 时代持续产生价值。</p>
+<p>有人的地方就有江湖，有 Agent 的地方就有 Harness，人本身就是最重要的隐式 Harness，人在为 Agent 建设 Harness 的同时，本身也在成为更好的 Harness。</p>
+<h2 id="参考文章"><a class="markdownIt-Anchor" href="#参考文章"></a> 参考文章</h2>
+<ul>
+<li>
+<p>[Harness engineering: leveraging Codex in an agent-first world]<a href="https://openai.com/index/harness-engineering/">https://openai.com/index/harness-engineering</a></p>
+</li>
+<li>
+<p>[Harness engineering for coding agent users]<a href="https://martinfowler.com/articles/harness-engineering.html">https://martinfowler.com/articles/harness-engineering.html</a></p>
+</li>
+<li>
+<p>[The Anatomy of an Agent Harness]<a href="https://www.langchain.com/blog/the-anatomy-of-an-agent-harness">https://www.langchain.com/blog/the-anatomy-of-an-agent-harness</a></p>
+</li>
+<li>
+<p>[Harness design for long-running application development]<a href="https://www.anthropic.com/engineering/harness-design-long-running-apps">https://www.anthropic.com/engineering/harness-design-long-running-apps</a></p>
+</li>
+<li>
+<p>[Effective harnesses for long-running agents] <a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents">https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents</a></p>
+</li>
+<li>
+<p>[Caling Managed Agents: Decoupling the brain from the hands] <a href="https://www.anthropic.com/engineering/managed-agents">https://www.anthropic.com/engineering/managed-agents</a></p>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2026/05/17/harness-2026-05-17-harness-engineering-sharing/" data-id="cmp9654qr0000i6lhex1f83xy" data-title="Harness Engineering 原理与实践分享" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Harness-Engineering/" rel="tag">Harness Engineering</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2026/02/13/sdd-2026-2-13-sdd-sharing/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">《Spec-Driven Development 原理与实战》</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Engineering/">Engineering</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Miscellaneous/">Miscellaneous</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Programming/">Programming</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Harness-Engineering/" rel="tag">Harness Engineering</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDD/" rel="tag">SDD</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Harness-Engineering/" style="font-size: 10px;">Harness Engineering</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/SDD/" style="font-size: 10px;">SDD</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">May 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/05/17/harness-2026-05-17-harness-engineering-sharing/">Harness Engineering 原理与实践分享</a>
+          </li>
+        
+          <li>
+            <a href="/2026/02/13/sdd-2026-2-13-sdd-sharing/">《Spec-Driven Development 原理与实战》</a>
+          </li>
+        
+          <li>
+            <a href="/2026/02/12/computing-2026-2-12-computing-sharing/">《计算读书笔记》</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/13/bigdata-2020-09-13-data-intensive-app-2/">设计数据密集型应用 —— 数据模型与查询语言</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2026 Yang, Yue<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
