@@ -82,6 +82,60 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-harness-2026-05-17-harness-engineering-sharing" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2026/05/17/harness-2026-05-17-harness-engineering-sharing/" class="article-date">
+  <time class="dt-published" datetime="2026-05-16T16:00:00.000Z" itemprop="datePublished">2026-05-17</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Engineering/">Engineering</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2026/05/17/harness-2026-05-17-harness-engineering-sharing/">Harness Engineering 原理与实践分享</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="什么是-harness"><a class="markdownIt-Anchor" href="#什么是-harness"></a> 什么是 Harness</h2>
+<p>随着大模型能力的迅速发展，工程师们在AI 的辅助下，能够以数倍乃至数十倍的效率，高效地产出工程代码。</p>
+<p>模型的能力本身已经很强大，但是同一个模型，在不同的使用方式下，输出的质量差异巨大。如果不加任何约束，一旦模型产生了某种幻觉，很容易沿着一个错误方向迅速偏离。</p>
+<p>模型本身没有问题，问题出在<strong>怎么驱动模型</strong>上面。我们需要给模型加上护栏，保障AI能够实现<strong>持续产出生产级可用代码</strong>的目标。于是 Harness Engineering的理念应运而生。</p>
+<p>Harness Engineering 不是一个编程工具或者框架，和敏捷编程类似，它是一种 AI 编程实践理念，是围绕 AI Coding Agent 设计和构建约束机制、反馈回路、工作流控制与持续改进循环的系统工程实践。</p>
+<p>Harness 字面上有马具的意思，这是一个有趣的隐喻，大模型像一匹野马，能日行千里，但有时会不受控制，所以需要 Harness 的约束，让它跑在正确的方向上。</p>
+        
+          <p class="article-more-link">
+            <a href="/2026/05/17/harness-2026-05-17-harness-engineering-sharing/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://demonyangyue.github.io/2026/05/17/harness-2026-05-17-harness-engineering-sharing/" data-id="cmp9654qr0000i6lhex1f83xy" data-title="Harness Engineering 原理与实践分享" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Harness-Engineering/" rel="tag">Harness Engineering</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-sdd-2026-2-13-sdd-sharing" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2026/02/13/sdd-2026-2-13-sdd-sharing/" class="article-date">
@@ -551,57 +605,6 @@
 
 
   
-    <article id="post-scheme-2016-12-19-scheme-interpreter" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/12/19/scheme-2016-12-19-scheme-interpreter/" class="article-date">
-  <time class="dt-published" datetime="2016-12-18T16:00:00.000Z" itemprop="datePublished">2016-12-19</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Programming/">Programming</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/12/19/scheme-2016-12-19-scheme-interpreter/">Scheme解释器开发札记</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h2 id="缘起"><a class="markdownIt-Anchor" href="#缘起"></a> 缘起</h2>
-<p>最早见到的<code>Scheme</code>解释器实现，是在<a href="http://uternet.github.io/TLS/10.html"><code>The Litter Schemer</code>的最后一章</a>。虽然书中实现的是一个原型版本，只能解析最基本的形式，并且用外部的Scheme解释器去计算解析出的Scheme表达式(接近于作弊)，但是还是可以隐约地感受到，函数式编程在解决复杂问题时的简洁有力。</p>
-<p>那么设计一个实际的<code>Scheme</code>解释器，会遇到哪些挑战呢？函数式编程思想在解决这些问题的时候，又会起到怎样的作用呢？带着对这些问题的好奇，用两个星期的业余时间，尝试写了一个自己的<a href="https://github.com/demonyangyue/SchemeInterpreter">scheme解释器</a>。</p>
-        
-          <p class="article-more-link">
-            <a href="/2016/12/19/scheme-2016-12-19-scheme-interpreter/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://demonyangyue.github.io/2016/12/19/scheme-2016-12-19-scheme-interpreter/" data-id="cmlkuqb27002bt6lh1pc68lwy" data-title="Scheme解释器开发札记" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -627,7 +630,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDD/" rel="tag">SDD</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Akka/" rel="tag">Akka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Big-Data/" rel="tag">Big Data</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Cloud-Computing/" rel="tag">Cloud Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computing/" rel="tag">Computing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Concurrent-Programming/" rel="tag">Concurrent Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink/" rel="tag">Flink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Guava/" rel="tag">Guava</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Harness-Engineering/" rel="tag">Harness Engineering</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Interperter/" rel="tag">Interperter</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mesos/" rel="tag">Mesos</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Meta-Programming/" rel="tag">Meta Programming</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rails/" rel="tag">Rails</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ruby/" rel="tag">Ruby</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDD/" rel="tag">SDD</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scala/" rel="tag">Scala</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Scheme/" rel="tag">Scheme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Streaming-System/" rel="tag">Streaming System</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jQuery/" rel="tag">jQuery</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%82%E9%A1%B9/" rel="tag">杂项</a></li></ul>
     </div>
   </div>
 
@@ -637,7 +640,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/SDD/" style="font-size: 10px;">SDD</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
+      <a href="/tags/Akka/" style="font-size: 16.67px;">Akka</a> <a href="/tags/Big-Data/" style="font-size: 11.67px;">Big Data</a> <a href="/tags/Cloud-Computing/" style="font-size: 20px;">Cloud Computing</a> <a href="/tags/Computing/" style="font-size: 10px;">Computing</a> <a href="/tags/Concurrent-Programming/" style="font-size: 10px;">Concurrent Programming</a> <a href="/tags/Flink/" style="font-size: 11.67px;">Flink</a> <a href="/tags/Guava/" style="font-size: 10px;">Guava</a> <a href="/tags/Harness-Engineering/" style="font-size: 10px;">Harness Engineering</a> <a href="/tags/Interperter/" style="font-size: 10px;">Interperter</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/Mesos/" style="font-size: 10px;">Mesos</a> <a href="/tags/Meta-Programming/" style="font-size: 13.33px;">Meta Programming</a> <a href="/tags/Rails/" style="font-size: 16.67px;">Rails</a> <a href="/tags/Ruby/" style="font-size: 13.33px;">Ruby</a> <a href="/tags/SDD/" style="font-size: 10px;">SDD</a> <a href="/tags/Scala/" style="font-size: 18.33px;">Scala</a> <a href="/tags/Scheme/" style="font-size: 10px;">Scheme</a> <a href="/tags/Spark/" style="font-size: 10px;">Spark</a> <a href="/tags/Streaming-System/" style="font-size: 11.67px;">Streaming System</a> <a href="/tags/Web/" style="font-size: 16.67px;">Web</a> <a href="/tags/jQuery/" style="font-size: 15px;">jQuery</a> <a href="/tags/%E6%9D%82%E9%A1%B9/" style="font-size: 10px;">杂项</a>
     </div>
   </div>
 
@@ -646,7 +649,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">May 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/02/">February 2026</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/06/">June 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/05/">May 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">April 2015</a></li></ul>
     </div>
   </div>
 
@@ -657,6 +660,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2026/05/17/harness-2026-05-17-harness-engineering-sharing/">Harness Engineering 原理与实践分享</a>
+          </li>
         
           <li>
             <a href="/2026/02/13/sdd-2026-2-13-sdd-sharing/">《Spec-Driven Development 原理与实战》</a>
@@ -672,10 +679,6 @@
         
           <li>
             <a href="/2020/09/06/bigdata-2020-09-06-data-intensive-app-1/">设计数据密集型应用1 —— 序</a>
-          </li>
-        
-          <li>
-            <a href="/2020/05/20/flink-2020-05-20-flink2/">Flink原理、架构与实现Part2 - 原理与架构</a>
           </li>
         
       </ul>

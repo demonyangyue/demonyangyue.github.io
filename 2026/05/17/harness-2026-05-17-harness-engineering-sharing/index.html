@@ -6,18 +6,18 @@
   
   <title>Harness Engineering 原理与实践分享 | crackshell</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="Harness Engineering 原理与实践分享  什么是 Harness 随着大模型能力的迅速发展，工程师们在AI 的辅助下，能够以数倍乃至数十倍的效率，高效地产出工程代码。 模型的能力本身已经很强大，但是同一个模型，在不同的使用方式下，输出的质量差异巨大。如果不加任何约束，一旦模型产生了某种幻觉，很容易沿着一个错误方向迅速偏离。 模型本身没有问题，问题出在怎么驱动模型上面。我们需要给模">
+  <meta name="description" content="什么是 Harness 随着大模型能力的迅速发展，工程师们在AI 的辅助下，能够以数倍乃至数十倍的效率，高效地产出工程代码。 模型的能力本身已经很强大，但是同一个模型，在不同的使用方式下，输出的质量差异巨大。如果不加任何约束，一旦模型产生了某种幻觉，很容易沿着一个错误方向迅速偏离。 模型本身没有问题，问题出在怎么驱动模型上面。我们需要给模型加上护栏，保障AI能够实现持续产出生产级可用代码的目标。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Harness Engineering 原理与实践分享">
 <meta property="og:url" content="http://demonyangyue.github.io/2026/05/17/harness-2026-05-17-harness-engineering-sharing/index.html">
 <meta property="og:site_name" content="crackshell">
-<meta property="og:description" content="Harness Engineering 原理与实践分享  什么是 Harness 随着大模型能力的迅速发展，工程师们在AI 的辅助下，能够以数倍乃至数十倍的效率，高效地产出工程代码。 模型的能力本身已经很强大，但是同一个模型，在不同的使用方式下，输出的质量差异巨大。如果不加任何约束，一旦模型产生了某种幻觉，很容易沿着一个错误方向迅速偏离。 模型本身没有问题，问题出在怎么驱动模型上面。我们需要给模">
+<meta property="og:description" content="什么是 Harness 随着大模型能力的迅速发展，工程师们在AI 的辅助下，能够以数倍乃至数十倍的效率，高效地产出工程代码。 模型的能力本身已经很强大，但是同一个模型，在不同的使用方式下，输出的质量差异巨大。如果不加任何约束，一旦模型产生了某种幻觉，很容易沿着一个错误方向迅速偏离。 模型本身没有问题，问题出在怎么驱动模型上面。我们需要给模型加上护栏，保障AI能够实现持续产出生产级可用代码的目标。">
 <meta property="og:locale">
 <meta property="og:image" content="http://demonyangyue.github.io/images/harness/1.png">
 <meta property="og:image" content="http://demonyangyue.github.io/images/harness/2.png">
 <meta property="og:image" content="http://demonyangyue.github.io/images/harness/3.png">
 <meta property="article:published_time" content="2026-05-16T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-05-17T02:50:24.373Z">
+<meta property="article:modified_time" content="2026-05-17T02:52:57.223Z">
 <meta property="article:author" content="Yang, Yue">
 <meta property="article:tag" content="Harness Engineering">
 <meta name="twitter:card" content="summary">
@@ -113,8 +113,7 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <h1 id="harness-engineering-原理与实践分享"><a class="markdownIt-Anchor" href="#harness-engineering-原理与实践分享"></a> Harness Engineering 原理与实践分享</h1>
-<h2 id="什么是-harness"><a class="markdownIt-Anchor" href="#什么是-harness"></a> 什么是 Harness</h2>
+        <h2 id="什么是-harness"><a class="markdownIt-Anchor" href="#什么是-harness"></a> 什么是 Harness</h2>
 <p>随着大模型能力的迅速发展，工程师们在AI 的辅助下，能够以数倍乃至数十倍的效率，高效地产出工程代码。</p>
 <p>模型的能力本身已经很强大，但是同一个模型，在不同的使用方式下，输出的质量差异巨大。如果不加任何约束，一旦模型产生了某种幻觉，很容易沿着一个错误方向迅速偏离。</p>
 <p>模型本身没有问题，问题出在<strong>怎么驱动模型</strong>上面。我们需要给模型加上护栏，保障AI能够实现<strong>持续产出生产级可用代码</strong>的目标。于是 Harness Engineering的理念应运而生。</p>
